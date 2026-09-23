@@ -17,6 +17,10 @@ on:
         description: "Bazaya yazma (true/false)"
         required: false
         default: "true"
+      inspect:
+        description: "Diaqnostika: bir səhifənin ünvanı"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -38,8 +42,10 @@ jobs:
           INPUT_SOURCE: ${{ github.event.inputs.source }}
           INPUT_LIMIT: ${{ github.event.inputs.limit }}
           INPUT_DRY: ${{ github.event.inputs.dry }}
+          INPUT_INSPECT: ${{ github.event.inputs.inspect }}
           EVENT: ${{ github.event_name }}
         run: |
+          if [ -n "$INPUT_INSPECT" ]; then npx tsx crawler/run.ts --inspect "$INPUT_INSPECT" | tee crawl-output.md; exit 0; fi
           ARGS="--limit ${INPUT_LIMIT:-30}"
           if [ -n "$INPUT_SOURCE" ]; then ARGS="$ARGS --source $INPUT_SOURCE"; fi
           if [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_DRY" != "false" ]; then ARGS="$ARGS --dry"; fi

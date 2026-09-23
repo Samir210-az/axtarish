@@ -19,6 +19,12 @@ const ONLY = (arg("source") ?? "")
 const DRY = process.argv.includes("--dry") || !process.env.FIREBASE_SERVICE_ACCOUNT;
 const DAY = new Date().toISOString().slice(0, 10);
 
+const CATEGORY_HINT: Record<string, string> = { parfüm: "perfume", elektronika: "electronics" };
+
+function defaultCategoryOf(source: Source): string | undefined {
+  return source.categories.length === 1 ? CATEGORY_HINT[source.categories[0] as string] : undefined;
+}
+
 function rank(url: string): number {
   return parseInt(createHash("sha1").update(`${url}${DAY}`).digest("hex").slice(0, 8), 16);
 }
@@ -71,7 +77,10 @@ async function processSource(source: Source): Promise<{ items: SaveItem[]; lines
       outOfStock += 1;
       continue;
     }
-    const identity = identify(product);
+    const identity = identify(product, {
+      storeNames: [source.name, new URL(source.url).hostname.split(".")[0] ?? ""],
+      defaultCategory: defaultCategoryOf(source),
+    });
     if (!identity) {
       unidentified += 1;
       continue;
@@ -99,7 +108,30 @@ async function processSource(source: Source): Promise<{ items: SaveItem[]; lines
   return { items, lines };
 }
 
+async function inspect(url: string) {
+  const fetcher = new PoliteFetcher();
+  const page = await fetcher.get(url);
+  if (!page.ok) {
+    console.log(`inspect ${url}: ${page.reason} ${page.detail}`);
+    return;
+  }
+  console.log(`inspect ${page.url} status=${page.status} bytes=${page.body.length}`);
+  const blocks = [...page.body.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)];
+  console.log(`ld+json bloklar: ${blocks.length}`);
+  blocks
+    .slice(0, 4)
+    .forEach((block, index) => console.log(`--- ld[${index}] ---\n${(block[1] ?? "").trim().slice(0, 1500)}`));
+  const metas = [...page.body.matchAll(/<meta[^>]+(?:price|og:title)[^>]*>/gi)].slice(0, 8).map((m) => m[0]);
+  console.log(`meta:\n${metas.join("\n")}`);
+  console.log(`extractProduct: ${JSON.stringify(extractProduct(page.body))}`);
+}
+
 async function main() {
+  const inspectUrl = arg("inspect");
+  if (inspectUrl) {
+    await inspect(inspectUrl);
+    return;
+  }
   const selected = SOURCES.filter((s) => (ONLY.length > 0 ? ONLY.includes(s.id) : s.adapter === "generic-jsonld"));
   console.log(
     `# Crawl ${new Date().toISOString()} | limit=${LIMIT} | rejim=${DRY ? "DRY (bazaya yazılmır)" : "YAZMA"}`,

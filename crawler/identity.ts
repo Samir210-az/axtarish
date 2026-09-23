@@ -115,15 +115,32 @@ function firstSize(folded: string): Size | null {
   return null;
 }
 
-function inferCategory(folded: string, variant: Variant | null, parsed: string[]): string {
+function inferCategory(folded: string, variant: Variant | null, parsed: string[], fallback?: string): string {
   if (parsed[0]) return parsed[0];
   if (variant !== null) return "perfume";
   if (/\b(iphone|smartfon|smartphone|galaxy|redmi|poco)\b/.test(folded)) return "smartphone";
-  if (/\b(sabun|sampun|dus|kondisioner|mecunu|dezodorant|deodorant|krem)\b/.test(folded)) return "hygiene";
-  return "other";
+  if (
+    /\b(sabun|sampun|dus|kondisioner|mecunu|dezodorant|deodorant|krem|serum|emulsiya|losyon|maska|gel|tonik)/.test(
+      folded,
+    )
+  ) {
+    return "personal_care";
+  }
+  return fallback ?? "other";
 }
 
-export function identify(product: ExtractedProduct): Identity | null {
+export interface IdentifyOptions {
+  storeNames?: string[];
+  defaultCategory?: string;
+}
+
+function isStoreBrand(brand: string, storeNames: string[]): boolean {
+  const brandTokens = tokensOf(brand);
+  const storeTokens = new Set(storeNames.flatMap((name) => tokensOf(name)));
+  return brandTokens.length > 0 && brandTokens.some((token) => storeTokens.has(token));
+}
+
+export function identify(product: ExtractedProduct, options: IdentifyOptions = {}): Identity | null {
   const displayName = decodeEntities(product.name).replace(/\s+/g, " ").trim();
   const folded = foldText(displayName);
   if (SKIP.test(folded)) return null;
@@ -131,7 +148,8 @@ export function identify(product: ExtractedProduct): Identity | null {
   const size = firstSize(folded);
   const withoutSize = size ? `${folded.slice(0, size.index)} ${folded.slice(size.index + size.length)}` : folded;
   const parsed = parseQuery(withoutSize);
-  const brand = product.brand ? decodeEntities(product.brand).trim() : "";
+  const rawBrand = product.brand ? decodeEntities(product.brand).trim() : "";
+  const brand = rawBrand && !isStoreBrand(rawBrand, options.storeNames ?? []) ? rawBrand : "";
   const brandTokens = brand ? tokensOf(brand) : [];
 
   const keyTokens = [...new Set([...brandTokens, ...parsed.tokens])].filter(
@@ -150,7 +168,7 @@ export function identify(product: ExtractedProduct): Identity | null {
     displayName,
     brand: brand || (keyTokens[0] ?? ""),
     model: modelTokens.join(" "),
-    category: inferCategory(folded, parsed.variant, parsed.categories),
+    category: inferCategory(folded, parsed.variant, parsed.categories, options.defaultCategory),
     variant: parsed.variant,
     volumeMl: size?.ml ?? null,
     sizeLabel: size?.key ?? null,

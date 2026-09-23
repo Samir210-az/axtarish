@@ -81,4 +81,26 @@ describe("identify", () => {
   it("adı yalnız ölçüdən ibarət olan məhsulu atır", () => {
     expect(identify(product("100 ml"))).toBeNull();
   });
+
+  it("mağazanın adı olan markanı açara qatmır", () => {
+    const opts = { storeNames: ["Omid", "omid"] };
+    const a = identify(product("Burğu Sverlo 10x210", { brand: "Omid" }), opts);
+    const b = identify(product("Burğu Sverlo 10x210"), opts);
+    expect(a?.productId).toBe(b?.productId);
+  });
+
+  it("əsl markanı saxlayır", () => {
+    const id = identify(product("Sauvage EDP 100 ml", { brand: "Dior" }), { storeNames: ["Omid"] });
+    expect(id?.brand).toBe("Dior");
+  });
+
+  it("əl sabunu və gel kimi sözləri şəxsi baxım sayır", () => {
+    expect(identify(product("MONOİ ƏL SABUNU 190ML"))?.category).toBe("personal_care");
+    expect(identify(product("Üz Yuma Geli, 390 ml"))?.category).toBe("personal_care");
+  });
+
+  it("standart kateqoriya yalnız başqa siqnal olmadıqda tətbiq olunur", () => {
+    expect(identify(product("Kirke Unisex 100 ml"), { defaultCategory: "perfume" })?.category).toBe("perfume");
+    expect(identify(product("Dove Sabun 90 qr"), { defaultCategory: "perfume" })?.category).toBe("personal_care");
+  });
 });
