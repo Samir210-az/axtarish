@@ -1,18 +1,36 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { MAX_OFFERS_PER_QUERY, MAX_PRODUCTS_IN_INDEX, PRODUCT_INDEX_TTL_MS } from "./config";
+import { MAX_OFFERS_PER_QUERY, MAX_PRODUCTS_PER_KEY, PRODUCT_CACHE_MAX_ENTRIES, PRODUCT_CACHE_TTL_MS } from "./config";
 import { db } from "./firebaseAdmin";
+import type { ParsedQuery } from "./normalize";
 import { offerDocSchema, productDocSchema } from "./schemas";
+import { planProductQuery, type ProductQueryPlan } from "./searchKeys";
 import type { Offer, Product } from "./types";
 
 const IN_QUERY_LIMIT = 30;
 
-let productCache: { loadedAt: number; items: Product[] } | null = null;
+const productCache = new Map<string, { loadedAt: number; items: Product[] }>();
 
-export async function loadProducts(): Promise<Product[]> {
+function cacheKeyOf(plan: ProductQueryPlan): string {
+  return plan.kind === "key" ? `k:${plan.key}` : `c:${[...plan.categories].sort().join(",")}`;
+}
+
+export async function loadProducts(query: ParsedQuery): Promise<Product[]> {
+  const plan = planProductQuery(query);
+  if (!plan) return [];
+
+  const cacheKey = cacheKeyOf(plan);
   const now = Date.now();
-  if (productCache && now - productCache.loadedAt < PRODUCT_INDEX_TTL_MS) return productCache.items;
+  const cached = productCache.get(cacheKey);
+  if (cached && now - cached.loadedAt < PRODUCT_CACHE_TTL_MS) return cached.items;
 
-  const snapshot = await db().collection("products").limit(MAX_PRODUCTS_IN_INDEX).get();
+  const collection = db().collection("products");
+  const snapshot =
+    plan.kind === "key"
+      ? await collection.where("searchKeys", "array-contains", plan.key).limit(MAX_PRODUCTS_PER_KEY).get()
+      : await collection.where("category", "in", plan.categories).limit(MAX_PRODUCTS_PER_KEY).get();
+  if (snapshot.size >= MAX_PRODUCTS_PER_KEY)
+    console.warn(`products: ${cacheKey} üçün limit dolub (${MAX_PRODUCTS_PER_KEY})`);
+
   const items: Product[] = [];
   let skipped = 0;
   for (const doc of snapshot.docs) {
@@ -22,7 +40,13 @@ export async function loadProducts(): Promise<Product[]> {
   }
   if (skipped > 0) console.warn(`products: ${skipped} yanlış formatlı sənəd buraxıldı`);
 
-  productCache = { loadedAt: now, items };
+  productCache.delete(cacheKey);
+  productCache.set(cacheKey, { loadedAt: now, items });
+  while (productCache.size > PRODUCT_CACHE_MAX_ENTRIES) {
+    const oldest = productCache.keys().next().value;
+    if (oldest === undefined) break;
+    productCache.delete(oldest);
+  }
   return items;
 }
 

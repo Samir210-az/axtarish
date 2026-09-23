@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ParsedQuery } from "@/lib/normalize";
 import { search, toPublicOffer, type SearchDeps } from "@/lib/search";
 import type { Offer, Product } from "@/lib/types";
 import { NOW, daysAgo, offer, product } from "./fixtures";
@@ -12,6 +13,21 @@ function deps(products: Product[], offers: Offer[]): SearchDeps {
 }
 
 describe("search", () => {
+  it("məhsulları yükləyəndə təhlil olunmuş sorğunu ötürür", async () => {
+    const seen: ParsedQuery[] = [];
+    const custom: SearchDeps = {
+      loadProducts: async (parsed) => {
+        seen.push(parsed);
+        return [product()];
+      },
+      loadOffers: async () => [],
+      now: () => NOW,
+    };
+    await search("Dior Sauvage 100 ml", 30, custom);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({ tokens: ["dior", "sauvage"], volumeMl: 100 });
+  });
+
   it("anlaşılmayan sorğuda understood=false qaytarır", async () => {
     const res = await search("100 ml", 30, deps([product()], []));
     expect(res).toMatchObject({ understood: false, matchedProducts: 0, results: [] });

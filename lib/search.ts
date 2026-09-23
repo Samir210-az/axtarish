@@ -1,15 +1,11 @@
-import {
-  MAX_CANDIDATE_PRODUCTS,
-  MAX_OFFERS_SHOWN_PER_PRODUCT,
-  MAX_RESULT_PRODUCTS,
-} from "./config";
-import { indexProducts, matchProducts, parseQuery } from "./normalize";
+import { MAX_CANDIDATE_PRODUCTS, MAX_OFFERS_SHOWN_PER_PRODUCT, MAX_RESULT_PRODUCTS } from "./config";
+import { indexProducts, matchProducts, parseQuery, type ParsedQuery } from "./normalize";
 import { round2, statsByAuthenticity, latestPerSeller } from "./stats";
 import { safeHttpUrl } from "./url";
 import type { Offer, Product, ProductResult, PublicOffer, SearchResponse } from "./types";
 
 export interface SearchDeps {
-  loadProducts: () => Promise<Product[]>;
+  loadProducts: (query: ParsedQuery) => Promise<Product[]>;
   loadOffers: (productIds: string[], since: Date) => Promise<Offer[]>;
   now?: () => Date;
 }
@@ -25,9 +21,7 @@ export function toPublicOffer(offer: Offer): PublicOffer {
     sellerType: offer.sellerType,
     priceAzn: round2(offer.priceAzn),
     oldPriceAzn: hasDiscount ? round2(offer.oldPriceAzn as number) : null,
-    discountPct: hasDiscount
-      ? Math.round((1 - offer.priceAzn / (offer.oldPriceAzn as number)) * 100)
-      : null,
+    discountPct: hasDiscount ? Math.round((1 - offer.priceAzn / (offer.oldPriceAzn as number)) * 100) : null,
     authenticity: offer.authenticity,
     sourceType: offer.sourceType,
     effectiveAt: offer.effectiveAt.toISOString(),
@@ -43,7 +37,7 @@ export async function search(rawQuery: string, days: number, deps: SearchDeps): 
     return { ...base, understood: false, matchedProducts: 0, results: [] };
   }
 
-  const index = indexProducts(await deps.loadProducts());
+  const index = indexProducts(await deps.loadProducts(query));
   const matched = matchProducts(index, query);
   if (matched.length === 0) {
     return { ...base, understood: true, matchedProducts: 0, results: [] };
@@ -54,9 +48,12 @@ export async function search(rawQuery: string, days: number, deps: SearchDeps): 
     .slice(0, MAX_CANDIDATE_PRODUCTS);
 
   const since = new Date(now.getTime() - days * DAY_MS);
-  const offers = (await deps.loadOffers(candidates.map((p) => p.id), since)).filter(
-    (o) => o.effectiveAt >= since && o.effectiveAt <= now,
-  );
+  const offers = (
+    await deps.loadOffers(
+      candidates.map((p) => p.id),
+      since,
+    )
+  ).filter((o) => o.effectiveAt >= since && o.effectiveAt <= now);
 
   const offersByProduct = new Map<string, Offer[]>();
   for (const offer of offers) {
@@ -86,8 +83,7 @@ export async function search(rawQuery: string, days: number, deps: SearchDeps): 
   );
   results.sort(
     (a, b) =>
-      (sellerTotals.get(b.productId) ?? 0) - (sellerTotals.get(a.productId) ?? 0) ||
-      a.name.localeCompare(b.name, "az"),
+      (sellerTotals.get(b.productId) ?? 0) - (sellerTotals.get(a.productId) ?? 0) || a.name.localeCompare(b.name, "az"),
   );
 
   return {
