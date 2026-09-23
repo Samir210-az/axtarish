@@ -35,7 +35,7 @@ Bu saytlar Azərbaycan şəbəkəsindən də HTTP 403 və ya Cloudflare yoxlamas
 
 | Sayt | Səbəb |
 |---|---|
-| birmarket.az (Umico) | HTTP 403. Yol: `business.umico.az` üzərindən rəsmi imkan |
+| birmarket.az (Umico) | `robots.txt` kateqoriya səhifələrinə açıq `Allow` verir, amma ABŞ-dan və Azərbaycandan HTTP 403 (Cloudflare bot qaydası). Yol: `business.umico.az` üzərindən icazə və ya API |
 | kontakt.az | Cloudflare |
 
 **Runner haqqında:** yoxlamalar GitHub Actions-dan gəlir (ABŞ, Çikaqo, Microsoft şəbəkəsi). Azərbaycan şəbəkəsindən sınaq 4 saytda fərqli nəticə verdi, yuxarıda göstərilib.

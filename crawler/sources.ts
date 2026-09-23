@@ -27,7 +27,7 @@ export const SOURCES: Source[] = [
     ],
     note: "Bir məhsul üzrə bir neçə satıcı. Ad ilə link uyğun gəlmir, adı əsas götür.",
     findings:
-      "2026-09-23: robots.txt oxunur, amma səhifələr HTTP 403 qaytarır (avtomatik giriş bağlıdır). Keçməyə çalışmıram. Yol: rəsmi API/icazə (business.umico.az).",
+      "2026-09-23: robots.txt kateqoriya səhifələrinə (?view=categories, ?page=) açıq Allow verir, amma həm ABŞ data mərkəzindən (GitHub Actions), həm Azərbaycan şəbəkəsindən (Termux) HTTP 403 gəlir. Səbəb ölkə deyil, Cloudflare bot qaydasıdır. Keçməyə çalışmıram. Yol: Birmarket/Umico-dan AxtarishBot üçün icazə və ya rəsmi API (business.umico.az).",
   },
   {
     id: "kontakt",
