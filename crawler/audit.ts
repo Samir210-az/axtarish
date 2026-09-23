@@ -50,16 +50,13 @@ function priceWindow(body: string): string {
 async function main() {
   const rulesByHost = new Map<string, { rules: RobotsRules | "closed"; summary: string }>();
   const active = SOURCES.filter((s) => s.plan !== "excluded");
-  const hosts = [
-    ...new Set(active.flatMap((s) => [s.url, ...(s.samples ?? [])].map((u) => new URL(u).origin))),
-  ];
+  const hosts = [...new Set(active.flatMap((s) => [s.url, ...(s.samples ?? [])].map((u) => new URL(u).origin)))];
 
   for (const origin of hosts) {
     try {
       const robots = await get(`${origin}/robots.txt`);
       const looksLikeRobots =
-        /user-agent|disallow|sitemap/i.test(robots.body.slice(0, 4000)) &&
-        !/<html/i.test(robots.body.slice(0, 300));
+        /user-agent|disallow|sitemap/i.test(robots.body.slice(0, 4000)) && !/<html/i.test(robots.body.slice(0, 300));
       const summary = `robots.txt status=${robots.status} robotsFormat=${looksLikeRobots}`;
       if (robots.status >= 500) rulesByHost.set(origin, { rules: "closed", summary });
       else if (robots.status >= 400 || !looksLikeRobots)
@@ -99,10 +96,9 @@ async function main() {
       }
       try {
         const { status, finalUrl, body } = await get(raw);
-        const blocked =
-          /just a moment|cf-chl|attention required|captcha|access denied|enable javascript/i.test(
-            body.slice(0, 6000),
-          );
+        const blocked = /just a moment|cf-chl|attention required|captcha|access denied|enable javascript/i.test(
+          body.slice(0, 6000),
+        );
         const title = (body.match(/<title[^>]*>([^<]*)/i)?.[1] ?? "").trim().slice(0, 90);
         console.log(
           `- ${label}\n  ${host.summary} -> status=${status} bytes=${body.length} blocked=${blocked} moved=${finalUrl !== raw}`,

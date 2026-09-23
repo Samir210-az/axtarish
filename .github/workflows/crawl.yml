@@ -1,0 +1,56 @@
+name: Crawl
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Sayt id-ləri (vergüllə), boş olsa hamısı"
+        required: false
+        default: ""
+      limit:
+        description: "Sayt başına səhifə sayı"
+        required: false
+        default: "30"
+      dry:
+        description: "Bazaya yazma (true/false)"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run crawler
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          INPUT_SOURCE: ${{ github.event.inputs.source }}
+          INPUT_LIMIT: ${{ github.event.inputs.limit }}
+          INPUT_DRY: ${{ github.event.inputs.dry }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          ARGS="--limit ${INPUT_LIMIT:-30}"
+          if [ -n "$INPUT_SOURCE" ]; then ARGS="$ARGS --source $INPUT_SOURCE"; fi
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_DRY" != "false" ]; then ARGS="$ARGS --dry"; fi
+          npx tsx crawler/run.ts $ARGS | tee crawl-output.md
+      - name: Publish output
+        if: always()
+        run: |
+          git config user.name "crawl-bot"
+          git config user.email "crawl-bot@users.noreply.github.com"
+          git checkout --orphan crawl-results
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          git add -f crawl-output.md
+          git commit -m "crawl output"
+          git push -f origin crawl-results

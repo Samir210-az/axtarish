@@ -66,7 +66,10 @@ describe("matchProducts", () => {
       volumeMl: null,
     }),
   ]);
-  const ids = (q: string) => matchProducts(index, parseQuery(q)).map((p) => p.id).sort();
+  const ids = (q: string) =>
+    matchProducts(index, parseQuery(q))
+      .map((p) => p.id)
+      .sort();
 
   it("həcm və varianta görə dəqiq süzür", () => {
     expect(ids("Dior Sauvage EDP 100 ml")).toEqual(["edp100"]);

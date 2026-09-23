@@ -56,9 +56,7 @@ export function parseRobots(text: string, agent: string): RobotsRules {
 
 function toRegex(pattern: string): RegExp {
   const anchored = pattern.endsWith("$");
-  const body = (anchored ? pattern.slice(0, -1) : pattern)
-    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*/g, ".*");
+  const body = (anchored ? pattern.slice(0, -1) : pattern).replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
   return new RegExp(`^${body}${anchored ? "$" : ""}`);
 }
 
@@ -74,4 +72,8 @@ export function isAllowed(rules: RobotsRules, pathWithQuery: string): boolean {
   const disallowed = longestMatch(rules.disallow, pathWithQuery);
   if (disallowed === -1) return true;
   return longestMatch(rules.allow, pathWithQuery) >= disallowed;
+}
+
+export function parseSitemaps(text: string): string[] {
+  return [...text.matchAll(/^\s*sitemap:\s*(\S+)/gim)].map((match) => match[1] as string);
 }

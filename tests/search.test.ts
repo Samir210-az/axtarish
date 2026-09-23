@@ -61,11 +61,7 @@ describe("search", () => {
       product({ id: "a", displayName: "Aaa Sauvage 100 ml" }),
       product({ id: "b", displayName: "Zzz Sauvage 100 ml" }),
     ];
-    const offers = [
-      offer({ productId: "a" }),
-      offer({ productId: "b" }),
-      offer({ productId: "b" }),
-    ];
+    const offers = [offer({ productId: "a" }), offer({ productId: "b" }), offer({ productId: "b" })];
     const res = await search("Sauvage", 30, deps(products, offers));
     expect(res.results.map((r) => r.productId)).toEqual(["b", "a"]);
   });

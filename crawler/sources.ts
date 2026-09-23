@@ -11,6 +11,8 @@ export interface Source {
   samples?: string[];
   note?: string;
   findings?: string;
+  adapter?: "generic-jsonld";
+  productUrlPattern?: string;
 }
 
 export const SOURCES: Source[] = [
@@ -38,8 +40,7 @@ export const SOURCES: Source[] = [
     plan: "blocked",
     samples: ["https://kontakt.az/iphone-15-128-gb-black"],
     note: "Qiymət başlıq meta-sında (product:price:amount).",
-    findings:
-      "2026-09-23: Cloudflare yoxlaması (Just a moment) HTTP 403. Keçməyə çalışmıram. Yol: icazə və ya feed.",
+    findings: "2026-09-23: Cloudflare yoxlaması (Just a moment) HTTP 403. Keçməyə çalışmıram. Yol: icazə və ya feed.",
   },
   {
     id: "irshad",
@@ -80,6 +81,8 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["elektronika"],
     plan: "pilot",
+    adapter: "generic-jsonld",
+    productUrlPattern: "/product/",
     samples: ["https://almali.az/product/iphone-15-128gb-black/"],
     findings:
       "2026-09-23: HTTP 200, WooCommerce, məhsul səhifəsində JSON-LD Product var. robots /shop/ və add-to-cart-ı qadağan edir.",
@@ -132,8 +135,7 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["ərzaq", "məişət kimyası", "gigiyena"],
     plan: "candidate",
-    findings:
-      "2026-09-23: HTTP 200, amma cavab gövdəsi boşdur (0 bayt). Səbəbi bilinmir, yenidən yoxlanmalıdır.",
+    findings: "2026-09-23: HTTP 200, amma cavab gövdəsi boşdur (0 bayt). Səbəbi bilinmir, yenidən yoxlanmalıdır.",
   },
   {
     id: "omid",
@@ -142,6 +144,8 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["tikinti materialları", "məişət texnikası"],
     plan: "pilot",
+    adapter: "generic-jsonld",
+    productUrlPattern: "/products/",
     samples: ["https://omid.az/collections/yeni-gelen-mehsullar"],
     findings:
       "2026-09-23: HTTP 200, Shopify, qiymət HTML-də (data-js-product-price). Saytın adı 'İnşaat Materialları və Məişət Texnikası Mağazası': kosmetika yox, tikinti və texnikadır.",
@@ -153,9 +157,10 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["kosmetika", "gigiyena", "parfüm"],
     plan: "pilot",
+    adapter: "generic-jsonld",
+    productUrlPattern: "/products/",
     samples: ["https://www.yvesrocher.az/az/products/80049"],
-    findings:
-      "2026-09-23: HTTP 200, Shopify, məhsul səhifəsində JSON-LD Product və og:price var. Ən təmiz struktur.",
+    findings: "2026-09-23: HTTP 200, Shopify, məhsul səhifəsində JSON-LD Product və og:price var. Ən təmiz struktur.",
   },
   {
     id: "kosmetika",
@@ -165,8 +170,7 @@ export const SOURCES: Source[] = [
     categories: ["kosmetika"],
     plan: "candidate",
     note: "Domen kataloq məlumatına əsaslanır, yoxlanmalıdır.",
-    findings:
-      "2026-09-23: HTTP 200, robots açıqdır. Ana səhifədə qiymət yoxdur, məhsul səhifəsi yoxlanmalıdır.",
+    findings: "2026-09-23: HTTP 200, robots açıqdır. Ana səhifədə qiymət yoxdur, məhsul səhifəsi yoxlanmalıdır.",
   },
   {
     id: "aromi",
@@ -185,6 +189,8 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["parfüm"],
     plan: "pilot",
+    adapter: "generic-jsonld",
+    productUrlPattern: "product_id=\\d+",
     samples: ["https://www.parfumshop.az/index.php?route=product/product&product_id=7076"],
     findings:
       "2026-09-23: HTTP 200, OpenCart, məhsul səhifəsində JSON-LD Product var. robots yalnız admin/ödəniş yollarını qadağan edir.",
