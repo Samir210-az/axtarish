@@ -71,7 +71,7 @@ describe("identify", () => {
 
   it("gigiyena məhsulunu və qram ölçüsünü tanıyır", () => {
     const id = identify(product("Dove Krem Sabun 90 qr"));
-    expect(id).toMatchObject({ sizeLabel: "90g", category: "hygiene" });
+    expect(id).toMatchObject({ sizeLabel: "90g", category: "personal_care" });
   });
 
   it("litri millilitrə çevirir", () => {
