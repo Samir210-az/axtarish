@@ -118,7 +118,7 @@ a {
   top: 0;
   z-index: 10;
   border-bottom: 1px solid var(--edge);
-  background: rgba(26, 6, 9, 0.66);
+  background: rgba(26, 6, 9, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
