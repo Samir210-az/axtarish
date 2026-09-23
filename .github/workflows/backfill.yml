@@ -37,6 +37,7 @@ jobs:
           git config user.email "backfill-bot@users.noreply.github.com"
           git checkout --orphan backfill-results
           git rm -rf --cached . > /dev/null 2>&1 || true
-          git add -f backfill-output.md
+          echo '{"git":{"deploymentEnabled":false},"ignoreCommand":"exit 0"}' > vercel.json
+          git add -f backfill-output.md vercel.json
           git commit -m "backfill output"
           git push -f origin backfill-results

@@ -22,6 +22,7 @@ jobs:
           git config user.email "audit-bot@users.noreply.github.com"
           git checkout --orphan audit-results
           git rm -rf --cached . > /dev/null 2>&1 || true
-          git add -f audit-output.md
+          echo '{"git":{"deploymentEnabled":false},"ignoreCommand":"exit 0"}' > vercel.json
+          git add -f audit-output.md vercel.json
           git commit -m "audit output"
           git push -f origin audit-results

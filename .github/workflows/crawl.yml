@@ -69,6 +69,7 @@ jobs:
           git config user.email "crawl-bot@users.noreply.github.com"
           git checkout --orphan crawl-results
           git rm -rf --cached . > /dev/null 2>&1 || true
-          git add -f crawl-output.md
+          echo '{"git":{"deploymentEnabled":false},"ignoreCommand":"exit 0"}' > vercel.json
+          git add -f crawl-output.md vercel.json
           git commit -m "crawl output"
           git push -f origin crawl-results
