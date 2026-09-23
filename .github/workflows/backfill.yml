@@ -1,0 +1,42 @@
+name: Backfill search keys
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "Yalnız say (true/false)"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run backfill
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          INPUT_DRY: ${{ github.event.inputs.dry }}
+        run: |
+          set --
+          if [ "$INPUT_DRY" != "false" ]; then set -- --dry; fi
+          npx tsx crawler/backfill-keys.ts "$@" | tee backfill-output.md
+      - name: Publish output
+        if: always()
+        run: |
+          git config user.name "backfill-bot"
+          git config user.email "backfill-bot@users.noreply.github.com"
+          git checkout --orphan backfill-results
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          git add -f backfill-output.md
+          git commit -m "backfill output"
+          git push -f origin backfill-results

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "../lib/firebaseAdmin";
+import { searchKeysFor } from "../lib/searchKeys";
 import type { SourceType } from "../lib/types";
 import type { Identity } from "./identity";
 
@@ -56,7 +57,12 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
         summary.productsSeen += 1;
         const ref = firestore.collection("products").doc(identity.productId);
         if (existingProducts.has(identity.productId)) {
-          batch.update(ref, { aliases: FieldValue.arrayUnion(identity.displayName), updatedAt: now });
+          const aliasKeys = searchKeysFor({ brand: "", model: "", displayName: identity.displayName, aliases: [] });
+          batch.update(ref, {
+            aliases: FieldValue.arrayUnion(identity.displayName),
+            ...(aliasKeys.length > 0 ? { searchKeys: FieldValue.arrayUnion(...aliasKeys) } : {}),
+            updatedAt: now,
+          });
         } else {
           summary.productsNew += 1;
           batch.set(ref, {
@@ -70,6 +76,12 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
             gtin: identity.gtin,
             matchKey: identity.matchKey,
             aliases: [identity.displayName],
+            searchKeys: searchKeysFor({
+              brand: identity.brand,
+              model: identity.model,
+              displayName: identity.displayName,
+              aliases: [identity.displayName],
+            }),
             createdAt: now,
             updatedAt: now,
           });
