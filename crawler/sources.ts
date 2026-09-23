@@ -59,8 +59,9 @@ export const SOURCES: Source[] = [
     url: "https://bakuelectronics.az/",
     kind: "retailer",
     categories: ["elektronika"],
-    plan: "blocked",
-    findings: "2026-09-23: Cloudflare yoxlaması HTTP 403. Bir sınaqda standart bot User-Agent formatı ilə 200 verdi, təkrarda yenə 403: qeyri-sabitdir. Keçməyə çalışmıram.",
+    plan: "candidate",
+    findings:
+      "2026-09-23: Azərbaycan şəbəkəsindən (mobil, Termux) HTTP 200 və tam səhifə. ABŞ data mərkəzindən (GitHub Actions) Cloudflare yoxlaması çıxır. Yəni yalnız Azərbaycandakı maşından oxunur. robots və səhifə strukturu hələ Azərbaycandan yoxlanmayıb.",
   },
   {
     id: "ispace",
@@ -89,9 +90,10 @@ export const SOURCES: Source[] = [
     url: "https://breezy.az/",
     kind: "retailer",
     categories: ["elektronika"],
-    plan: "blocked",
+    plan: "candidate",
     samples: ["https://breezy.az/smartphone/vendor=apple/series=iphone-15/internal-memory-size=128-gb"],
-    findings: "2026-09-23: robots.txt və səhifələr Cloudflare yoxlaması ilə HTTP 403. Keçməyə çalışmıram.",
+    findings:
+      "2026-09-23: Azərbaycan şəbəkəsindən (mobil, Termux) HTTP 200 və tam səhifə. ABŞ data mərkəzindən (GitHub Actions) Cloudflare yoxlaması çıxır. Yəni yalnız Azərbaycandakı maşından oxunur. robots və səhifə strukturu hələ Azərbaycandan yoxlanmayıb.",
   },
   {
     id: "bazarstore",
@@ -193,14 +195,14 @@ export const SOURCES: Source[] = [
     url: "https://lalafo.az/",
     kind: "classifieds",
     categories: ["hər sahə"],
-    plan: "blocked",
+    plan: "candidate",
     samples: [
       "https://lalafo.az/azerbaijan/krasota-i-zdorove/parfyumeriya-2/q-dior-sauvage-100ml-qiymeti",
       "https://lalafo.az/digyakh/ads/kosmetik-dst-3-mhsul-id-110606107",
     ],
     note: "Fərdi satıcılar. Elan tarixi səhifədə var. Şəxsi məlumat toplanmır.",
     findings:
-      "2026-09-23: Cloudflare yoxlaması HTTP 403. Keçməyə çalışmıram. Alternativ: rəsmi əməkdaşlıq və ya API.",
+      "2026-09-23: Azərbaycan şəbəkəsindən (mobil, Termux) HTTP 200 və tam səhifə. ABŞ data mərkəzindən (GitHub Actions) Cloudflare yoxlaması çıxır. Yəni yalnız Azərbaycandakı maşından oxunur. robots və səhifə strukturu hələ Azərbaycandan yoxlanmayıb.",
   },
   {
     id: "tapaz",
@@ -208,10 +210,11 @@ export const SOURCES: Source[] = [
     url: "https://tap.az/",
     kind: "classifieds",
     categories: ["hər sahə"],
-    plan: "blocked",
+    plan: "candidate",
     samples: ["https://tap.az/elanlar?keywords=dior+sauvage"],
     note: "Fərdi satıcılar. Şəxsi məlumat toplanmır.",
-    findings: "2026-09-23: robots.txt və səhifələr Cloudflare yoxlaması ilə HTTP 403. Keçməyə çalışmıram.",
+    findings:
+      "2026-09-23: Azərbaycan şəbəkəsindən (mobil, Termux) HTTP 200 və tam səhifə. ABŞ data mərkəzindən (GitHub Actions) Cloudflare yoxlaması çıxır. Yəni yalnız Azərbaycandakı maşından oxunur. robots və səhifə strukturu hələ Azərbaycandan yoxlanmayıb.",
   },
   {
     id: "maqazin",

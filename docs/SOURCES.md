@@ -25,20 +25,20 @@ Yoxlama tarixi: 2026-09-23. Yoxlama GitHub Actions üzərində `Audit sources` i
 | kosmetika.az | 200, ana səhifədə qiymət yoxdur |
 | aromi.az | robots.txt alına bilmədi |
 
+## Yalnız Azərbaycan IP-dən açılır
+
+`lalafo.az`, `tap.az`, `breezy.az`, `bakuelectronics.az` Azərbaycan şəbəkəsindən HTTP 200 verir, ABŞ data mərkəzindən (GitHub Actions) Cloudflare yoxlaması çıxarır. Test: 2026-09-23, mobil şəbəkə, Termux, yalnız ana səhifə. `robots.txt` və səhifə strukturu Azərbaycandan hələ yoxlanmayıb. Bu saytlar yalnız həqiqətən Azərbaycanda yerləşən maşından oxunmalıdır.
+
 ## Bloklanıb (toxunmuram)
 
-Bu saytlar HTTP 403 və ya Cloudflare yoxlaması qaytarır. Yəni avtomatik giriş açıq şəkildə bağlıdır və mən bunu keçməyə çalışmıram.
+Bu saytlar Azərbaycan şəbəkəsindən də HTTP 403 və ya Cloudflare yoxlaması qaytarır. Yəni avtomatik giriş açıq şəkildə bağlıdır və mən bunu keçməyə çalışmıram.
 
 | Sayt | Səbəb |
 |---|---|
 | birmarket.az (Umico) | HTTP 403. Yol: `business.umico.az` üzərindən rəsmi imkan |
 | kontakt.az | Cloudflare |
-| bakuelectronics.az | Cloudflare. Bir sınaqda 200, təkrarda 403: qeyri-sabit |
-| breezy.az | Cloudflare |
-| lalafo.az | Cloudflare |
-| tap.az | Cloudflare |
 
-**Runner haqqında:** yoxlamalar GitHub Actions-dan gəlir (ABŞ, Çikaqo, Microsoft şəbəkəsi). Blokun səbəbi ölkə, data mərkəzi şəbəkəsi və ya bot qorumasıdır, hələ ayırd edilməyib. Azərbaycandakı bir maşından eyni yoxlama aparılmalıdır.
+**Runner haqqında:** yoxlamalar GitHub Actions-dan gəlir (ABŞ, Çikaqo, Microsoft şəbəkəsi). Azərbaycan şəbəkəsindən sınaq 4 saytda fərqli nəticə verdi, yuxarıda göstərilib.
 
 ## Kənarda
 
