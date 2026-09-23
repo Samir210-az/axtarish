@@ -60,7 +60,7 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["elektronika"],
     plan: "blocked",
-    findings: "2026-09-23: Cloudflare yoxlaması HTTP 403. Keçməyə çalışmıram.",
+    findings: "2026-09-23: Cloudflare yoxlaması HTTP 403. Bir sınaqda standart bot User-Agent formatı ilə 200 verdi, təkrarda yenə 403: qeyri-sabitdir. Keçməyə çalışmıram.",
   },
   {
     id: "ispace",

@@ -33,10 +33,12 @@ Bu saytlar HTTP 403 və ya Cloudflare yoxlaması qaytarır. Yəni avtomatik giri
 |---|---|
 | birmarket.az (Umico) | HTTP 403. Yol: `business.umico.az` üzərindən rəsmi imkan |
 | kontakt.az | Cloudflare |
-| bakuelectronics.az | Cloudflare |
+| bakuelectronics.az | Cloudflare. Bir sınaqda 200, təkrarda 403: qeyri-sabit |
 | breezy.az | Cloudflare |
 | lalafo.az | Cloudflare |
 | tap.az | Cloudflare |
+
+**Runner haqqında:** yoxlamalar GitHub Actions-dan gəlir (ABŞ, Çikaqo, Microsoft şəbəkəsi). Blokun səbəbi ölkə, data mərkəzi şəbəkəsi və ya bot qorumasıdır, hələ ayırd edilməyib. Azərbaycandakı bir maşından eyni yoxlama aparılmalıdır.
 
 ## Kənarda
 
