@@ -1,0 +1,27 @@
+name: Audit sources
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsx crawler/audit.ts > audit-output.md
+      - name: Publish output
+        run: |
+          git config user.name "audit-bot"
+          git config user.email "audit-bot@users.noreply.github.com"
+          git checkout --orphan audit-results
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          git add -f audit-output.md
+          git commit -m "audit output"
+          git push -f origin audit-results
