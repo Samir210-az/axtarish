@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { PoliteFetcher } from "./http";
 import { identify } from "./identity";
 import { extractProduct } from "./jsonld";
+import { extractArazProduct } from "./nextRsc";
 import { hasWordSlug, querySpec, textMatchesQuery, urlMatchesQuery } from "./match";
 import { collectProductUrls, extractLinks, type SitemapEntry } from "./sitemap";
 import { SOURCES, type Source } from "./sources";
@@ -59,7 +60,7 @@ async function discoverFresh(
   const origin = new URL(source.url).origin;
   const declared = await fetcher.sitemapsFor(origin);
   const start = declared.length > 0 ? declared : [`${origin}/sitemap.xml`];
-  const fromSitemap = await collectProductUrls(fetcher, start, pattern, { maxSitemaps: 6, maxUrls: 60000 });
+  const fromSitemap = await collectProductUrls(fetcher, start, pattern, { maxSitemaps: 30, maxUrls: 60000 });
   if (fromSitemap.length > 0) return { entries: fromSitemap, note: `sitemap (${start.length} başlanğıc)` };
 
   const home = await fetcher.get(source.url);
@@ -104,7 +105,7 @@ async function processSource(
       if (page.reason === "blocked" || page.reason === "host_closed") break;
       continue;
     }
-    const product = extractProduct(page.body);
+    const product = source.adapter === "araz-rsc" ? extractArazProduct(page.body, page.url) : extractProduct(page.body);
     if (!product) {
       noData += 1;
       continue;
@@ -176,7 +177,7 @@ async function main() {
     await inspect(inspectUrl);
     return;
   }
-  const selected = SOURCES.filter((s) => (ONLY.length > 0 ? ONLY.includes(s.id) : s.adapter === "generic-jsonld"));
+  const selected = SOURCES.filter((s) => (ONLY.length > 0 ? ONLY.includes(s.id) : s.adapter !== undefined));
   console.log(
     `# Crawl ${new Date().toISOString()} | limit=${LIMIT} | rejim=${DRY ? "DRY (bazaya yazılmır)" : "YAZMA"}`,
   );

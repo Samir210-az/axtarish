@@ -11,7 +11,7 @@ export interface Source {
   samples?: string[];
   note?: string;
   findings?: string;
-  adapter?: "generic-jsonld";
+  adapter?: "generic-jsonld" | "araz-rsc";
   productUrlPattern?: string;
 }
 
@@ -115,8 +115,10 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["ərzaq", "məişət kimyası", "gigiyena"],
     plan: "pilot",
+    adapter: "araz-rsc",
+    productUrlPattern: "/az/products/",
     findings:
-      "2026-09-23: HTTP 200, Next.js, ana səhifə 1.5 MB (məlumat HTML-ə yazılıb ola bilər). robots yalnız /api, /admin, /cart, /checkout-u qadağan edir. Məhsul səhifəsi yoxlanmalıdır.",
+      "2026-09-24: sitemap https://www.arazmarket.az/sitemap.xml, məhsullar /az/products/{ad}-{id} (az/en/ru üçün ayrı ünvan). JSON-LD yoxdur, məlumat Next.js-in səhifəyə gömdüyü obyektdədir: sales_price (adi), discount_price və is_discount (cari). Stok sahəsi yoxdur (unknown), barcode mağazanın daxili kodudur (EAN deyil). robots yalnız /api, /admin, /cart, /checkout-u qadağan edir.",
   },
   {
     id: "bravo",
