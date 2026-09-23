@@ -12,13 +12,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#EEF1EF",
+  themeColor: "#091118",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="az">
-      <body>{children}</body>
+      <body>
+        <div className="backdrop" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }

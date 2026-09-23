@@ -21,42 +21,59 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   const formDays = isAllowedWindow(parsedDays) ? parsedDays : SEARCH_WINDOW_DAYS;
 
   return (
-    <div className="page">
+    <>
       <header className="masthead">
-        <Link href="/" className="wordmark">
-          Axtarış
-        </Link>
+        <div className="masthead-inner">
+          <Link href="/" className="wordmark">
+            <span className="mark" aria-hidden="true" />
+            Axtarış
+          </Link>
+        </div>
       </header>
 
-      <main>
-        <section className="ask">
-          <h1>Bu məhsulu Azərbaycanda kim neçə manata satır?</h1>
-          <SearchForm key={`${q}|${formDays}`} initialQuery={q} initialDays={formDays} />
-          <p className="examples">
-            Nümunələr:{" "}
-            {EXAMPLES.map((example, index) => (
-              <span key={example}>
-                {index > 0 && ", "}
-                <Link href={`/?${new URLSearchParams({ q: example, days: String(formDays) })}`}>{example}</Link>
-              </span>
-            ))}
-          </p>
-        </section>
+      <div className="page">
+        <main>
+          <section className="ask">
+            <h1>Bu məhsulu Azərbaycanda kim neçə manata satır?</h1>
+            <p className="lede">
+              Məhsulun adını yazın. Bazada olan qiymətləri, medianı və satıcı sayını göstəririk.
+            </p>
+            <SearchForm key={`${q}|${formDays}`} initialQuery={q} initialDays={formDays} />
+            <div className="examples">
+              <span>Nümunələr:</span>
+              {EXAMPLES.map((example) => (
+                <Link
+                  key={example}
+                  href={`/?${new URLSearchParams({ q: example, days: String(formDays) })}`}
+                >
+                  {example}
+                </Link>
+              ))}
+            </div>
+          </section>
 
-        {q ? (
-          <Suspense key={`${q}|${daysParam ?? ""}`} fallback={<p className="loading" role="status">Axtarılır…</p>}>
-            <Results q={q} days={daysParam} />
-          </Suspense>
-        ) : (
-          <StripLegend />
-        )}
-      </main>
+          {q ? (
+            <Suspense
+              key={`${q}|${daysParam ?? ""}`}
+              fallback={
+                <p className="loading" role="status">
+                  Axtarılır…
+                </p>
+              }
+            >
+              <Results q={q} days={daysParam} />
+            </Suspense>
+          ) : (
+            <StripLegend />
+          )}
+        </main>
 
-      <footer className="footer">
-        <a href="https://instagram.com/securtiy_group" target="_blank" rel="noopener noreferrer">
-          By securtiy_group
-        </a>
-      </footer>
-    </div>
+        <footer className="footer">
+          <a href="https://instagram.com/securtiy_group" target="_blank" rel="noopener noreferrer">
+            By securtiy_group
+          </a>
+        </footer>
+      </div>
+    </>
   );
 }

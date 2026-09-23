@@ -13,8 +13,8 @@ function sourceSummary(mix: GroupStats["sourceMix"]): string {
 function Group({ group }: { group: ProductResult["groups"][number] }) {
   const { authenticity, stats } = group;
   return (
-    <section className="group" aria-label={AUTHENTICITY_LABELS[authenticity]}>
-      <h3 className={`group-title group-${authenticity}`}>{AUTHENTICITY_LABELS[authenticity]}</h3>
+    <section className={`group tone-${authenticity}`} aria-label={AUTHENTICITY_LABELS[authenticity]}>
+      <h3 className="group-title">{AUTHENTICITY_LABELS[authenticity]}</h3>
 
       {stats.status === "ok" ? (
         <>
