@@ -1,10 +1,9 @@
 import { createHash } from "node:crypto";
 import { PoliteFetcher } from "./http";
-import { identify } from "./identity";
 import { extractProduct } from "./jsonld";
-import { extractArazProduct } from "./nextRsc";
-import { extractNopOldPrice } from "./nop";
-import { hasWordSlug, querySpec, textMatchesQuery, urlMatchesQuery } from "./match";
+import { entryIndex, nextCursor } from "./catalog";
+import { evaluatePage } from "./evaluate";
+import { hasWordSlug, querySpec, urlMatchesQuery } from "./match";
 import { collectProductUrls, extractLinks, type SitemapEntry } from "./sitemap";
 import { SOURCES, type Source } from "./sources";
 import type { SaveItem } from "./store";
@@ -25,15 +24,12 @@ const QUERIES = (arg("query") ?? "")
   .map((s) => s.trim())
   .filter(Boolean);
 const USE_QUEUE = process.argv.includes("--queue");
+const CATALOG = process.argv.includes("--catalog");
+const MINUTES = Math.max(1, Math.min(120, Number(arg("minutes") ?? 40) || 40));
+const FLUSH_EVERY = 100;
 const QUERY_MATCH_LIMIT = 25;
 const QUERY_SLUGLESS_LIMIT = 15;
 const DAY = new Date().toISOString().slice(0, 10);
-
-const CATEGORY_HINT: Record<string, string> = { parfüm: "perfume", elektronika: "electronics" };
-
-function defaultCategoryOf(source: Source): string | undefined {
-  return source.categories.length === 1 ? CATEGORY_HINT[source.categories[0] as string] : undefined;
-}
 
 function rank(url: string): number {
   return parseInt(createHash("sha1").update(`${url}${DAY}`).digest("hex").slice(0, 8), 16);
@@ -92,7 +88,6 @@ async function processSource(
   } else {
     picked = [...entries].sort((a, b) => rank(a.loc) - rank(b.loc)).slice(0, LIMIT);
   }
-  const wantedVolume = query ? querySpec(query).volumeMl : null;
   let mismatch = 0;
   const failures: Record<string, number> = {};
   const items: SaveItem[] = [];
@@ -107,44 +102,12 @@ async function processSource(
       if (page.reason === "blocked" || page.reason === "host_closed") break;
       continue;
     }
-    const product = source.adapter === "araz-rsc" ? extractArazProduct(page.body, page.url) : extractProduct(page.body);
-    if (!product) {
-      noData += 1;
-      continue;
-    }
-    if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {
-      const oldPrice = extractNopOldPrice(page.body);
-      if (oldPrice !== null && oldPrice > product.priceAzn) product.oldPriceAzn = oldPrice;
-    }
-    if (product.availability === "out_of_stock") {
-      outOfStock += 1;
-      continue;
-    }
-    if (query && !textMatchesQuery(`${product.brand ?? ""} ${product.name}`, query)) {
-      mismatch += 1;
-      continue;
-    }
-    const identity = identify(product, {
-      storeNames: [source.name, new URL(source.url).hostname.split(".")[0] ?? ""],
-      defaultCategory: defaultCategoryOf(source),
-    });
-    if (!identity) {
-      unidentified += 1;
-      continue;
-    }
-    if (wantedVolume !== null && identity.volumeMl !== wantedVolume) {
-      mismatch += 1;
-      continue;
-    }
-    items.push({
-      identity,
-      pageUrl: page.url,
-      priceAzn: product.priceAzn,
-      oldPriceAzn: product.oldPriceAzn,
-      sourceId: source.id,
-      sourceName: source.name,
-      sourceType: source.kind === "marketplace" ? "marketplace" : "online_store",
-    });
+    const { outcome, item } = evaluatePage(source, page, query);
+    if (item) items.push(item);
+    else if (outcome === "noData") noData += 1;
+    else if (outcome === "outOfStock") outOfStock += 1;
+    else if (outcome === "unidentified") unidentified += 1;
+    else mismatch += 1;
   }
 
   lines.push(
@@ -157,6 +120,64 @@ async function processSource(
     );
   }
   return { items, lines };
+}
+
+async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<string[]> {
+  const lines: string[] = [`\n## ${source.id} (${source.name}) | kataloq`];
+  const pattern = new RegExp(source.productUrlPattern ?? "/products?/");
+  const { entries, note } = await discover(fetcher, source, pattern);
+  lines.push(`kəşf: ${note}, ünvan: ${entries.length}`);
+  if (entries.length === 0) return lines;
+
+  const sorted = [...entries].sort((a, b) => a.loc.localeCompare(b.loc));
+  const total = sorted.length;
+  const state = DRY ? null : await import("./state");
+  const save = DRY ? null : (await import("./store")).saveItems;
+  const start = state ? (await state.readCursor(source.id)) % total : 0;
+  const deadline = Date.now() + MINUTES * 60_000;
+
+  const failures: Record<string, number> = {};
+  const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0 };
+  let processed = 0;
+  let extracted = 0;
+  let written = 0;
+  let batch: SaveItem[] = [];
+
+  const flush = async () => {
+    if (batch.length > 0 && save) {
+      await save(batch);
+      written += batch.length;
+    }
+    batch = [];
+    if (state) await state.writeCursor(source.id, nextCursor(start, processed, total), total, processed);
+  };
+
+  while (processed < total && Date.now() < deadline) {
+    const entry = sorted[entryIndex(start, processed, total)] as SitemapEntry;
+    processed += 1;
+    const page = await fetcher.get(entry.loc);
+    if (!page.ok) {
+      failures[page.reason] = (failures[page.reason] ?? 0) + 1;
+      if (page.reason === "blocked" || page.reason === "host_closed") break;
+      continue;
+    }
+    const { outcome, item } = evaluatePage(source, page);
+    if (item) {
+      batch.push(item);
+      extracted += 1;
+    } else if (outcome !== "ok") {
+      tally[outcome as keyof typeof tally] += 1;
+    }
+    if (batch.length >= FLUSH_EVERY) await flush();
+  }
+  await flush();
+
+  lines.push(
+    `baxıldı: ${processed}/${total} (kursor ${start} → ${nextCursor(start, processed, total)}), çıxarıldı: ${extracted}, yazıldı: ${written}, ` +
+      `məlumat yoxdur: ${tally.noData}, stokda yoxdur: ${tally.outOfStock}, tanınmadı: ${tally.unidentified}, ` +
+      `uyğunsuz: ${tally.mismatch}, uğursuz: ${JSON.stringify(failures)}`,
+  );
+  return lines;
 }
 
 async function inspect(url: string) {
@@ -214,7 +235,7 @@ async function main() {
 
   const queries: { id?: string; text: string }[] = QUERIES.map((text) => ({ text }));
   if (queries.length === 0) {
-    for (const source of selected) await run(source);
+    if (!CATALOG) for (const source of selected) await run(source);
     if (USE_QUEUE && !DRY) {
       const { takePending } = await import("./queue");
       const pending = await takePending(3);
@@ -239,19 +260,34 @@ async function main() {
   const unique = [...new Map(all.map((item) => [`${item.sourceId}|${item.pageUrl}`, item])).values()];
   if (DRY) {
     console.log(`\nDRY: ${unique.length} qiymət hazırdır, bazaya yazılmadı.`);
-    return;
-  }
-  if (unique.length === 0) {
-    console.log("\nYazılacaq qiymət yoxdur.");
   } else {
-    const { saveItems } = await import("./store");
-    console.log(`\nBaza: ${JSON.stringify(await saveItems(unique))}`);
+    if (unique.length === 0) {
+      console.log("\nYazılacaq qiymət yoxdur.");
+    } else {
+      const { saveItems } = await import("./store");
+      console.log(`\nBaza: ${JSON.stringify(await saveItems(unique))}`);
+    }
+    const withIds = processed.filter((p) => p.id);
+    if (withIds.length > 0) {
+      const { markDone } = await import("./queue");
+      for (const p of withIds) await markDone(p.id as string, p.found);
+      console.log(`növbə: ${withIds.length} sorğu tamamlandı`);
+    }
   }
-  const withIds = processed.filter((p) => p.id);
-  if (withIds.length > 0) {
-    const { markDone } = await import("./queue");
-    for (const p of withIds) await markDone(p.id as string, p.found);
-    console.log(`növbə: ${withIds.length} sorğu tamamlandı`);
+
+  if (CATALOG && QUERIES.length === 0) {
+    const targets = selected.filter((source) => source.catalog !== false);
+    console.log(`\n# Kataloq | müddət=${MINUTES} dəq | saytlar: ${targets.map((s) => s.id).join(", ") || "yoxdur"}`);
+    const results = await Promise.all(
+      targets.map(async (source) => {
+        try {
+          return await crawlCatalog(source, fetcherOf(source));
+        } catch (error) {
+          return [`\n## ${source.id}`, `XƏTA: ${error instanceof Error ? error.message : error}`];
+        }
+      }),
+    );
+    results.flat().forEach((line) => console.log(line));
   }
 }
 

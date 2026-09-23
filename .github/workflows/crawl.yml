@@ -25,6 +25,14 @@ on:
         description: "Saytda az nəticə verən axtarış növbəsini işlə (true/false)"
         required: false
         default: "false"
+      catalog:
+        description: "Kataloq rejimi: kursorla növbə ilə oxu (true/false)"
+        required: false
+        default: "false"
+      minutes:
+        description: "Kataloq rejimi üçün müddət (dəqiqə)"
+        required: false
+        default: "40"
       inspect:
         description: "Diaqnostika: bir səhifənin ünvanı"
         required: false
@@ -53,6 +61,8 @@ jobs:
           INPUT_INSPECT: ${{ github.event.inputs.inspect }}
           INPUT_QUERY: ${{ github.event.inputs.query }}
           INPUT_QUEUE: ${{ github.event.inputs.queue }}
+          INPUT_CATALOG: ${{ github.event.inputs.catalog }}
+          INPUT_MINUTES: ${{ github.event.inputs.minutes }}
           EVENT: ${{ github.event_name }}
         run: |
           if [ -n "$INPUT_INSPECT" ]; then npx tsx crawler/run.ts --inspect "$INPUT_INSPECT" | tee crawl-output.md; exit 0; fi
@@ -60,6 +70,7 @@ jobs:
           if [ -n "$INPUT_SOURCE" ]; then set -- "$@" --source "$INPUT_SOURCE"; fi
           if [ -n "$INPUT_QUERY" ]; then set -- "$@" --query "$INPUT_QUERY"; fi
           if [ "$EVENT" = "schedule" ] || [ "$INPUT_QUEUE" = "true" ]; then set -- "$@" --queue; fi
+          if [ "$EVENT" = "schedule" ] || [ "$INPUT_CATALOG" = "true" ]; then set -- "$@" --catalog --minutes "${INPUT_MINUTES:-40}"; fi
           if [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_DRY" != "false" ]; then set -- "$@" --dry; fi
           npx tsx crawler/run.ts "$@" | tee crawl-output.md
       - name: Publish output

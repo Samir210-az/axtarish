@@ -12,6 +12,7 @@ export interface Source {
   note?: string;
   findings?: string;
   adapter?: "generic-jsonld" | "araz-rsc";
+  catalog?: boolean;
   productUrlPattern?: string;
 }
 
@@ -82,6 +83,7 @@ export const SOURCES: Source[] = [
     categories: ["elektronika"],
     plan: "pilot",
     adapter: "generic-jsonld",
+    catalog: false,
     productUrlPattern: "/product/",
     samples: ["https://almali.az/product/iphone-15-128gb-black/"],
     findings:
