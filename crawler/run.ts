@@ -86,7 +86,8 @@ async function processSource(
     const matched = entries.filter((e) => urlMatchesQuery(e.loc, query));
     const matchedSet = new Set(matched.map((e) => e.loc));
     const slugless = entries.filter((e) => !matchedSet.has(e.loc) && !hasWordSlug(e.loc));
-    picked = [...matched.slice(0, QUERY_MATCH_LIMIT), ...slugless.slice(0, QUERY_SLUGLESS_LIMIT)];
+    const useSlugless = matched.length === 0 && slugless.length >= entries.length * 0.4;
+    picked = [...matched.slice(0, QUERY_MATCH_LIMIT), ...(useSlugless ? slugless.slice(0, QUERY_SLUGLESS_LIMIT) : [])];
     lines.push(`ünvan uyğunluğu: ${matched.length}, sluqsuz ünvan: ${slugless.length}, yoxlanacaq: ${picked.length}`);
   } else {
     picked = [...entries].sort((a, b) => rank(a.loc) - rank(b.loc)).slice(0, LIMIT);
