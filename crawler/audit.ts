@@ -1,7 +1,7 @@
 import { SOURCES } from "./sources";
 import { isAllowed, parseRobots, type RobotsRules } from "./robots";
 
-const UA = "AxtarishBot/0.1 (+https://axtarish-az.vercel.app; price research)";
+const UA = "Mozilla/5.0 (compatible; AxtarishBot/0.1; +https://axtarish-az.vercel.app; price research)";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function get(url: string) {
