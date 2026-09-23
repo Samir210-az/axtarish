@@ -6,7 +6,7 @@ Azərbaycan bazarında məhsulların qiymət diapazonunu göstərən platforma. 
 
 ```bash
 npm ci
-cp .env.example .env.local   # FIREBASE_SERVICE_ACCOUNT_BASE64 dəyərini yazın
+cp .env.example .env.local   # FIREBASE_SERVICE_ACCOUNT dəyərini yazın
 npm run dev
 ```
 
@@ -23,7 +23,7 @@ npx firebase-tools login
 npx firebase-tools deploy --only firestore:indexes --project axtaris-b9ae7
 ```
 
-Service account açarı yalnız Vercel və GitHub Secrets-də saxlanır, repoya yazılmır.
+Service account açarı `FIREBASE_SERVICE_ACCOUNT` adı ilə yalnız Vercel və GitHub Secrets-də saxlanır, repoya yazılmır. Dəyər açar faylının JSON mətni və ya base64 forması ola bilər. Köhnə `FIREBASE_SERVICE_ACCOUNT_BASE64` adı da işləyir.
 
 ## Məlumat modeli
 
