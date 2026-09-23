@@ -104,9 +104,11 @@ export const SOURCES: Source[] = [
     url: "https://bazarstore.az/",
     kind: "retailer",
     categories: ["ərzaq", "məişət kimyası", "gigiyena"],
-    plan: "candidate",
+    plan: "pilot",
+    adapter: "generic-jsonld",
+    productUrlPattern: "^https://bazarstore\\.az/[^/?#]+/?$",
     findings:
-      "2026-09-23: HTTP 200, robots kataloqu bağlamır. Ana səhifə HTML-ində yalnız 4 qiymət var, məhsul səhifəsi yoxlanmalıdır.",
+      "2026-09-24: nopCommerce. Məhsul səhifəsində standart JSON-LD Product var: ad, marka, sku, gtin (əsl EAN-13), qiymət (AZN), stok. Köhnə qiymət yalnız HTML-də (old-product-price). Məhsul və kateqoriya ünvanları eyni formatdadır (/{ad}), ona görə sitemap-dan ada görə süzülür. robots.txt /search-i qadağan edir, sayt axtarışından istifadə edilmir.",
   },
   {
     id: "arazmarket",

@@ -72,6 +72,13 @@ function collectNodes(value: unknown, out: Json[]): void {
 function text(value: unknown): string | null {
   if (typeof value === "string") return decodeEntities(value).trim() || null;
   if (typeof value === "number") return String(value);
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = text(item);
+      if (found) return found;
+    }
+    return null;
+  }
   if (isObject(value) && typeof value.name === "string") return decodeEntities(value.name).trim() || null;
   return null;
 }

@@ -3,6 +3,7 @@ import { PoliteFetcher } from "./http";
 import { identify } from "./identity";
 import { extractProduct } from "./jsonld";
 import { extractArazProduct } from "./nextRsc";
+import { extractNopOldPrice } from "./nop";
 import { hasWordSlug, querySpec, textMatchesQuery, urlMatchesQuery } from "./match";
 import { collectProductUrls, extractLinks, type SitemapEntry } from "./sitemap";
 import { SOURCES, type Source } from "./sources";
@@ -110,6 +111,10 @@ async function processSource(
       noData += 1;
       continue;
     }
+    if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {
+      const oldPrice = extractNopOldPrice(page.body);
+      if (oldPrice !== null && oldPrice > product.priceAzn) product.oldPriceAzn = oldPrice;
+    }
     if (product.availability === "out_of_stock") {
       outOfStock += 1;
       continue;
@@ -211,7 +216,7 @@ async function main() {
     for (const source of selected) await run(source);
     if (USE_QUEUE && !DRY) {
       const { takePending } = await import("./queue");
-      const pending = await takePending(5);
+      const pending = await takePending(3);
       console.log(`\nnövbə: ${pending.length} sorğu`);
       queries.push(...pending.map((p) => ({ id: p.id, text: p.query })));
     }
