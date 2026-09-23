@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { ALLOWED_WINDOWS } from "@/lib/config";
+import { enqueueQuery, needsMoreData } from "@/lib/searchQueue";
 import { runSearch, validateSearchInput } from "@/lib/service";
 import { ProductSection } from "./ProductSection";
 
@@ -24,6 +26,7 @@ export async function Results({ q, days }: { q: string; days: string | undefined
   if (!outcome.ok) return <Notice title={outcome.message} alert />;
 
   const { data } = outcome;
+  if (needsMoreData(data)) after(() => enqueueQuery(input.q).catch(() => undefined));
 
   if (!data.understood) {
     return (
@@ -42,9 +45,7 @@ export async function Results({ q, days }: { q: string; days: string | undefined
     return (
       <Notice title={`Bu məhsul bazada var, amma son ${data.windowDays} gündə qiymət tapılmayıb.`}>
         {next && (
-          <Link href={`/?${new URLSearchParams({ q: input.q, days: String(next) })}`}>
-            Son {next} günə baxın
-          </Link>
+          <Link href={`/?${new URLSearchParams({ q: input.q, days: String(next) })}`}>Son {next} günə baxın</Link>
         )}
       </Notice>
     );

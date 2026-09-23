@@ -99,7 +99,7 @@ export function indexProducts(products: Product[]): IndexedProduct[] {
   });
 }
 
-function tokenMatches(queryToken: string, productToken: string): boolean {
+export function tokenMatches(queryToken: string, productToken: string): boolean {
   if (queryToken === productToken) return true;
   if (queryToken.length < 3 || /^\d+$/.test(queryToken)) return false;
   return productToken.startsWith(queryToken);

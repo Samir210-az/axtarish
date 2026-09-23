@@ -17,6 +17,14 @@ on:
         description: "Bazaya yazma (true/false)"
         required: false
         default: "true"
+      query:
+        description: "Sorğu rejimi: məhsul adları (| ilə ayır), məsələn Dior Sauvage|sabun"
+        required: false
+        default: ""
+      queue:
+        description: "Saytda az nəticə verən axtarış növbəsini işlə (true/false)"
+        required: false
+        default: "false"
       inspect:
         description: "Diaqnostika: bir səhifənin ünvanı"
         required: false
@@ -43,13 +51,17 @@ jobs:
           INPUT_LIMIT: ${{ github.event.inputs.limit }}
           INPUT_DRY: ${{ github.event.inputs.dry }}
           INPUT_INSPECT: ${{ github.event.inputs.inspect }}
+          INPUT_QUERY: ${{ github.event.inputs.query }}
+          INPUT_QUEUE: ${{ github.event.inputs.queue }}
           EVENT: ${{ github.event_name }}
         run: |
           if [ -n "$INPUT_INSPECT" ]; then npx tsx crawler/run.ts --inspect "$INPUT_INSPECT" | tee crawl-output.md; exit 0; fi
-          ARGS="--limit ${INPUT_LIMIT:-30}"
-          if [ -n "$INPUT_SOURCE" ]; then ARGS="$ARGS --source $INPUT_SOURCE"; fi
-          if [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_DRY" != "false" ]; then ARGS="$ARGS --dry"; fi
-          npx tsx crawler/run.ts $ARGS | tee crawl-output.md
+          set -- --limit "${INPUT_LIMIT:-30}"
+          if [ -n "$INPUT_SOURCE" ]; then set -- "$@" --source "$INPUT_SOURCE"; fi
+          if [ -n "$INPUT_QUERY" ]; then set -- "$@" --query "$INPUT_QUERY"; fi
+          if [ "$EVENT" = "schedule" ] || [ "$INPUT_QUEUE" = "true" ]; then set -- "$@" --queue; fi
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$INPUT_DRY" != "false" ]; then set -- "$@" --dry; fi
+          npx tsx crawler/run.ts "$@" | tee crawl-output.md
       - name: Publish output
         if: always()
         run: |
