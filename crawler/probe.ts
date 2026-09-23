@@ -1,4 +1,4 @@
-const UA = "AxtarishBot/0.1 (+https://axtarish-az.vercel.app; qiymət araşdırması)";
+const UA = "AxtarishBot/0.1 (+https://axtarish-az.vercel.app; price research)";
 
 const TARGETS: Array<{ name: string; url: string }> = [
   { name: "birmarket-tag", url: "https://birmarket.az/tags/dior-sauvage" },
