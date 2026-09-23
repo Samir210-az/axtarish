@@ -35,6 +35,9 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
         <main>
           <section className="ask">
             <h1>Bu məhsulu Azərbaycanda kim neçə manata satır?</h1>
+            <div className="divider" aria-hidden="true">
+              <span />
+            </div>
             <p className="lede">
               Məhsulun adını yazın. Bazada olan qiymətləri, medianı və satıcı sayını göstəririk.
             </p>
