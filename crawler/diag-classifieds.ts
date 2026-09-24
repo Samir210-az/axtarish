@@ -1,78 +1,42 @@
 import { PoliteFetcher } from "./http";
-import { collectProductUrls } from "./sitemap";
 
-const SITES = ["https://laylo.az", "https://tapal.az", "https://ucuztap.az", "https://tezbazar.az"];
-
-const pick = (b: string, re: RegExp): string => (re.exec(b)?.[1] ?? "-").replace(/\s+/g, " ").slice(0, 170);
-
-function types(body: string): string[] {
-  const out = new Set<string>();
-  for (const m of body.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
-    for (const t of (m[1] ?? "").matchAll(/"@type"\s*:\s*"([^"]+)"/g)) out.add(t[1] as string);
+function contexts(body: string, re: RegExp, max: number, radius = 90): string[] {
+  const out: string[] = [];
+  for (const m of body.matchAll(re)) {
+    const at = m.index ?? 0;
+    out.push(body.slice(Math.max(0, at - radius), at + radius).replace(/\s+/g, " "));
+    if (out.length >= max) break;
   }
-  return [...out];
+  return out;
 }
 
 async function main() {
-  for (const origin of SITES) {
-    console.log(`\n===== ${origin}`);
-    const fetcher = new PoliteFetcher();
-    const declared = await fetcher.sitemapsFor(origin);
-    const home = await fetcher.get(`${origin}/`);
-    if (home.ok) {
-      console.log(`title: ${pick(home.body, /<title[^>]*>([\s\S]*?)<\/title>/i)}`);
-      console.log(
-        `meta description: ${pick(home.body, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)}`,
-      );
-      console.log(`ld+json tipləri (ana səhifə): ${JSON.stringify(types(home.body))}`);
-      const b = home.body;
-      const mention = (needle: RegExp) => (b.match(needle) ?? []).length;
-      console.log(
-        `tap.az xatırlanması=${mention(/tap\.az/gi)}, birmarket=${mention(/birmarket/gi)}, "mənbə/source"=${mention(/mənbə|source:/gi)}`,
-      );
-    }
+  const fetcher = new PoliteFetcher();
 
-    let target: string | null = null;
-    if (declared.length > 0) {
-      const entries = await collectProductUrls(fetcher, declared, /./, { maxSitemaps: 6, maxUrls: 400 });
-      console.log(
-        `sitemap ünvanları (ilk 400 həddi): ${entries.length}; nümunə: ${entries
-          .slice(0, 3)
-          .map((e) => e.loc)
-          .join(" | ")}`,
-      );
-      const adLike = entries.filter((e) => /\d{4,}/.test(e.loc));
-      console.log(`rəqəmli (elan kimi) ünvan sayı=${adLike.length}; lastmod nümunəsi=${adLike[0]?.lastmod ?? "-"}`);
-      target = (adLike[Math.floor(adLike.length / 2)] ?? entries[Math.floor(entries.length / 2)])?.loc ?? null;
-    } else if (home.ok) {
-      const link = [...home.body.matchAll(/href="(https?:\/\/tezbazar\.az\/[^"]*-\d{5,}\.html)"/g)][3]?.[1];
-      target = link ?? null;
-    }
-    if (!target) {
-      console.log("elan ünvanı seçilmədi");
-      continue;
-    }
-    const page = await fetcher.get(target);
-    if (!page.ok) {
-      console.log(`elan ${target}: ${page.reason} ${page.detail}`);
-      continue;
-    }
-    const p = page.body;
-    console.log(`ELAN ${page.url} (${p.length} bayt)`);
-    console.log(`  title: ${pick(p, /<title[^>]*>([\s\S]*?)<\/title>/i)}`);
-    console.log(`  ld+json tipləri: ${JSON.stringify(types(p))}`);
+  const uc = await fetcher.get("https://ucuztap.az/elanlar");
+  if (uc.ok) {
+    const b = uc.body;
+    const all = (b.match(/tap\.az/gi) ?? []).length;
+    const hrefs = (b.match(/href="https?:\/\/(?:www\.)?tap\.az[^"]*"/gi) ?? []).length;
+    const srcs = (b.match(/src="[^"]*tap\.az[^"]*"/gi) ?? []).length;
+    const own = (b.match(/ucuztap\.az/gi) ?? []).length;
     console.log(
-      `  qiymət: ${JSON.stringify([...p.matchAll(/(\d[\d\s]{0,9})\s*(?:₼|AZN|Azn|azn)/g)].slice(0, 3).map((m) => m[0]))}`,
+      `UCUZTAP /elanlar: ${b.length} bayt; tap.az=${all}, o cümlədən href=${hrefs}, src=${srcs}; ucuztap.az=${own}`,
     );
-    console.log(
-      `  tarix: ${JSON.stringify([...p.matchAll(/(\d{2}\.\d{2}\.\d{4}|Bu gün|Dünən|\d{4}-\d{2}-\d{2})/g)].slice(0, 3).map((m) => m[0]))}`,
-    );
-    console.log(
-      `  satıcı növü sözləri: ${JSON.stringify(["Şirkət", "Mağaza", "Fərdi", "Sahibkar", "Vasitəçi", "Agentlik", "Mülkiyyətçi"].filter((w) => p.includes(w)))}`,
-    );
-    console.log(
-      `  tap.az=${(p.match(/tap\.az/gi) ?? []).length}, birmarket=${(p.match(/birmarket/gi) ?? []).length}, telefon=${/tel:|\+994|\b05[015567][\s-]?\d{3}/.test(p)}`,
-    );
+    console.log(`kontekstlər:\n  ${contexts(b, /tap\.az/gi, 8).join("\n  ---\n  ")}`);
+    console.log(`"mənbə" kontekstləri:\n  ${contexts(b, /mənbə|Mənbə|source/g, 3).join("\n  ---\n  ")}`);
+  } else {
+    console.log(`ucuztap: ${uc.reason} ${uc.detail}`);
+  }
+
+  const tp = await fetcher.get("https://tapal.az/elan/249-epson-m3170-mono-printer");
+  if (tp.ok) {
+    const b = tp.body;
+    const offer = /"@type"\s*:\s*"Offer"[\s\S]{0,400}/.exec(b)?.[0]?.replace(/\s+/g, " ") ?? "-";
+    console.log(`\nTAPAL Offer bloku: ${offer.slice(0, 380)}`);
+    console.log(`Tapal seller/Person: ${JSON.stringify(contexts(b, /"@type"\s*:\s*"Person"/g, 1, 120))}`);
+  } else {
+    console.log(`tapal: ${tp.reason} ${tp.detail}`);
   }
 }
 
