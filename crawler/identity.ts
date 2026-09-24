@@ -1,3 +1,4 @@
+import { canonicalNameToken } from "./synonyms";
 import { createHash } from "node:crypto";
 import { foldText, parseQuery, tokensOf } from "../lib/normalize";
 import type { Authenticity, Variant } from "../lib/types";
@@ -159,7 +160,9 @@ export function identify(product: ExtractedProduct, options: IdentifyOptions = {
   const modelTokens = parsed.tokens.filter((t) => !brandTokens.includes(t) && !NOISE.has(t) && !COLORS.has(t));
   if (keyTokens.length === 0 && !product.gtin) return null;
 
-  const nameTokens = [...new Set(parsed.tokens)].filter((token) => !NOISE.has(token) && !COLORS.has(token));
+  const nameTokens = [
+    ...new Set(parsed.tokens.map(canonicalNameToken).filter((token): token is string => token !== null)),
+  ].filter((token) => !NOISE.has(token) && !COLORS.has(token));
   const nameKey =
     nameTokens.length >= 2 ? `${[...nameTokens].sort().join("-")}|${parsed.variant ?? "-"}|${size?.key ?? "-"}` : null;
 

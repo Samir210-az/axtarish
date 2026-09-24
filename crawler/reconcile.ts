@@ -6,16 +6,18 @@ import { planMerges, type MergeInput } from "./merge";
 
 const DRY = process.argv.includes("--dry");
 const BATCH_OPS = 400;
+const RECOMPUTE = process.argv.includes("--recompute");
 
 interface ProductRow {
   id: string;
   data: DocumentData;
   gtin: string | null;
   nameKey: string | null;
+  previousNameKey: string | null;
 }
 
 function nameKeyOf(data: DocumentData): string | null {
-  if (typeof data.nameKey === "string" && data.nameKey) return data.nameKey;
+  if (!RECOMPUTE && typeof data.nameKey === "string" && data.nameKey) return data.nameKey;
   const found = identify({
     name: String(data.displayName ?? ""),
     brand: typeof data.brand === "string" && data.brand ? data.brand : null,
@@ -53,6 +55,7 @@ async function main() {
       data,
       gtin: typeof data.gtin === "string" && data.gtin ? data.gtin : null,
       nameKey: nameKeyOf(data),
+      previousNameKey: typeof data.nameKey === "string" && data.nameKey ? data.nameKey : null,
     });
   }
 
@@ -173,11 +176,29 @@ async function main() {
     .map(
       (r) => (batch: WriteBatch) => batch.update(firestore.collection("products").doc(r.id), { nameKey: r.nameKey }),
     );
-  await runOps([...keyOps, ...nameOps]);
+  const wantedKeys = new Set(wanted.map((w) => w.key));
+  const staleRows = RECOMPUTE
+    ? [...rows.values()].filter(
+        (r) => r.previousNameKey && r.previousNameKey !== r.nameKey && !wantedKeys.has(`name:${r.previousNameKey}`),
+      )
+    : [];
+  const staleOps: ((batch: WriteBatch) => void)[] = [];
+  for (let start = 0; start < staleRows.length; start += 300) {
+    const slice = staleRows.slice(start, start + 300);
+    const snaps = await firestore.getAll(
+      ...slice.map((r) => firestore.collection("product_keys").doc(keyDocId(`name:${r.previousNameKey}`))),
+    );
+    snaps.forEach((snap, index) => {
+      if (snap.exists && snap.get("productId") === (slice[index] as ProductRow).id) {
+        staleOps.push((batch) => batch.delete(snap.ref));
+      }
+    });
+  }
+  await runOps([...keyOps, ...nameOps, ...staleOps]);
 
   console.log(
     `${DRY ? "yazılacaq" : "yazıldı"}: açar=${toWrite.length} (gtin=${toWrite.filter((w) => w.kind === "gtin").length}, ad=${toWrite.filter((w) => w.kind === "name").length}), ` +
-      `nameKey sahəsi=${nameOps.length}, köçürülən offer=${offersMoved}, qalan məhsul=${survivors.length}`,
+      `nameKey sahəsi=${nameOps.length}, köhnə açar=${staleOps.length}, köçürülən offer=${offersMoved}, qalan məhsul=${survivors.length}`,
   );
 }
 

@@ -7,6 +7,10 @@ on:
         description: "Yalnız plan (true/false)"
         required: false
         default: "true"
+      recompute:
+        description: "Ad açarlarını yenidən hesabla (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -26,9 +30,11 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           INPUT_DRY: ${{ github.event.inputs.dry }}
+          INPUT_RECOMPUTE: ${{ github.event.inputs.recompute }}
         run: |
           set --
           if [ "$INPUT_DRY" != "false" ]; then set -- --dry; fi
+          if [ "$INPUT_RECOMPUTE" = "true" ]; then set -- "$@" --recompute; fi
           npx tsx crawler/reconcile.ts "$@" | tee reconcile-output.md
       - name: Publish output
         if: always()
