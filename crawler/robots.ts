@@ -11,8 +11,13 @@ interface Group {
   delay: number | null;
 }
 
+function agentTokens(agent: string): string[] {
+  const products = [...agent.matchAll(/([a-z][a-z0-9_-]*)\/[\d.]+/gi)].map((m) => (m[1] as string).toLowerCase());
+  return products.length > 0 ? products : [agent.split("/")[0]!.toLowerCase()];
+}
+
 export function parseRobots(text: string, agent: string): RobotsRules {
-  const token = agent.split("/")[0]!.toLowerCase();
+  const tokens = agentTokens(agent);
   const groups: Group[] = [];
   let current: Group | null = null;
   let previousWasAgent = false;
@@ -41,7 +46,7 @@ export function parseRobots(text: string, agent: string): RobotsRules {
     else if (key === "crawl-delay" && Number.isFinite(Number(value))) current.delay = Number(value);
   }
 
-  const specific = groups.filter((g) => g.agents.some((a) => a !== "*" && token.includes(a)));
+  const specific = groups.filter((g) => g.agents.some((a) => a !== "*" && tokens.some((token) => token.includes(a))));
   const applicable = specific.length > 0 ? specific : groups.filter((g) => g.agents.includes("*"));
 
   return {
