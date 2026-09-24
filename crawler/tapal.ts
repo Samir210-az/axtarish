@@ -1,4 +1,5 @@
 import { decodeEntities, parsePrice, type ExtractedProduct } from "./jsonld";
+import { sanitizeAdText } from "./sellers";
 
 const TITLE = /<title[^>]*>([\s\S]*?)<\/title>/i;
 const AD = /^(.*?)\s+-\s+(\d[\d\s.,\u00a0]*?)\s*AZN\s*\|\s*([^|]+?)\s*-\s*TapAl\.az\s*$/i;
@@ -25,7 +26,7 @@ export function extractTapalAd(html: string, url: string): ExtractedProduct | nu
   if (!match) return null;
 
   const price = priceOf(match[2] as string);
-  const name = (match[1] as string).trim();
+  const name = sanitizeAdText(match[1] as string);
   if (price === null || !name) return null;
 
   return {

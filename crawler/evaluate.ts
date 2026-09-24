@@ -5,6 +5,7 @@ import { querySpec, textMatchesQuery } from "./match";
 import { extractArazProduct } from "./nextRsc";
 import { extractNopOldPrice } from "./nop";
 import { adSellerKey } from "./sellers";
+import { extractTapAd } from "./tap";
 import { extractTapalAd } from "./tapal";
 import { extractWooProduct } from "./woo";
 import type { Source } from "./sources";
@@ -30,7 +31,9 @@ export function evaluatePage(
         ? extractWooProduct(page.body)
         : source.adapter === "tapal-title"
           ? extractTapalAd(page.body, page.url)
-          : extractProduct(page.body);
+          : source.adapter === "tap-jsonld"
+            ? extractTapAd(page.body, page.url)
+            : extractProduct(page.body);
   if (!product) return { outcome: "noData" };
   if (isExcludedText(`${product.brand ?? ""} ${product.name}`)) return { outcome: "excluded" };
   if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {

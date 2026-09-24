@@ -47,9 +47,9 @@ export async function collectProductUrls(
   fetcher: PoliteFetcher,
   start: string[],
   pattern: RegExp,
-  options: { maxSitemaps: number; maxUrls: number },
+  options: { maxSitemaps: number; maxUrls: number; startOnly?: RegExp; lastChildren?: number },
 ): Promise<SitemapEntry[]> {
-  const queue = [...start];
+  const queue = options.startOnly ? start.filter((url) => options.startOnly?.test(url)) : [...start];
   const seen = new Set<string>();
   const found = new Map<string, SitemapEntry>();
   let fetched = 0;
@@ -64,7 +64,8 @@ export async function collectProductUrls(
     if (!response.ok) continue;
 
     const parsed = parseSitemapXml(response.body);
-    const children = parsed.children.sort((a, b) => Number(/product/i.test(b)) - Number(/product/i.test(a)));
+    const picked = options.lastChildren ? parsed.children.slice(-options.lastChildren) : parsed.children;
+    const children = picked.sort((a, b) => Number(/product/i.test(b)) - Number(/product/i.test(a)));
     queue.unshift(...children);
     for (const entry of parsed.urls) {
       if (found.size >= options.maxUrls) break;

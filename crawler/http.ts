@@ -4,7 +4,7 @@ export const USER_AGENT = "Mozilla/5.0 (compatible; AxtarishBot/0.1; +https://ax
 
 const MIN_DELAY_MS = 2500;
 const RETRY_DELAY_MS = 3000;
-const MAX_BODY_CHARS = 3_000_000;
+const MAX_BODY_CHARS = 8_000_000;
 const CHALLENGE = /just a moment|cf-chl|attention required|enable javascript and cookies/i;
 
 export type FetchFailure = "robots" | "blocked" | "host_closed" | "http" | "network";

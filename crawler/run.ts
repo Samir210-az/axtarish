@@ -66,8 +66,20 @@ async function discoverFresh(
   const origin = new URL(source.url).origin;
   const declared = await fetcher.sitemapsFor(origin);
   const start = declared.length > 0 ? declared : [`${origin}/sitemap.xml`];
-  const fromSitemap = await collectProductUrls(fetcher, start, pattern, { maxSitemaps: 30, maxUrls: 60000 });
-  if (fromSitemap.length > 0) return { entries: fromSitemap, note: `sitemap (${start.length} başlanğıc)` };
+  const policy = source.sitemapPolicy;
+  const collected = await collectProductUrls(fetcher, start, pattern, {
+    maxSitemaps: 30,
+    maxUrls: 60000,
+    ...(policy?.startOnly ? { startOnly: new RegExp(policy.startOnly) } : {}),
+    ...(policy?.lastChildren ? { lastChildren: policy.lastChildren } : {}),
+  });
+  const fromSitemap = collected.filter((entry) => !shouldSkipUrl(entry.loc));
+  if (fromSitemap.length > 0) {
+    return {
+      entries: fromSitemap,
+      note: `sitemap (${start.length} başlanğıc), qadağan kateqoriya siyahıya salınmadı: ${collected.length - fromSitemap.length}`,
+    };
+  }
 
   const home = await fetcher.get(source.url);
   if (!home.ok) return { entries: [], note: `ana səhifə alınmadı: ${home.reason} ${home.detail}` };
@@ -251,7 +263,9 @@ async function main() {
     await inspect(inspectUrl);
     return;
   }
-  const selected = SOURCES.filter((s) => (ONLY.length > 0 ? ONLY.includes(s.id) : s.adapter !== undefined));
+  const selected = SOURCES.filter((s) =>
+    ONLY.length > 0 ? ONLY.includes(s.id) : s.adapter !== undefined && s.azOnly !== true,
+  );
   console.log(
     `# Crawl ${new Date().toISOString()} | limit=${LIMIT} | rejim=${DRY ? "DRY (bazaya yazılmır)" : "YAZMA"}`,
   );
