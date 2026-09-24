@@ -1,0 +1,30 @@
+name: Diag
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run diagnostics
+        run: npx tsx crawler/diag-tapal.ts 2>&1 | tee diag-output.md
+      - name: Publish output
+        if: always()
+        run: |
+          git config user.name "diag-bot"
+          git config user.email "diag-bot@users.noreply.github.com"
+          git checkout --orphan diag-results
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          echo '{"git":{"deploymentEnabled":false},"ignoreCommand":"exit 0"}' > vercel.json
+          git add -f diag-output.md vercel.json
+          git commit -m "diag output"
+          git push -f origin diag-results
