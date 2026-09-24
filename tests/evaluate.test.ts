@@ -75,4 +75,9 @@ describe("mənbə reyestri (kataloq)", () => {
     expect(source("bazarstore").catalog).not.toBe(false);
     expect(source("arazmarket").catalog).not.toBe(false);
   });
+
+  it("omid kataloqdan hələlik çıxarılıb, amma adapteri saxlanılıb", () => {
+    expect(source("omid").catalog).toBe(false);
+    expect(source("omid").adapter).toBe("generic-jsonld");
+  });
 });

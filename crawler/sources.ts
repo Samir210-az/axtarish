@@ -150,10 +150,11 @@ export const SOURCES: Source[] = [
     categories: ["tikinti materialları", "məişət texnikası"],
     plan: "pilot",
     adapter: "generic-jsonld",
+    catalog: false,
     productUrlPattern: "/products/",
     samples: ["https://omid.az/collections/yeni-gelen-mehsullar"],
     findings:
-      "2026-09-23: HTTP 200, Shopify, qiymət HTML-də (data-js-product-price). Saytın adı 'İnşaat Materialları və Məişət Texnikası Mağazası': kosmetika yox, tikinti və texnikadır.",
+      "2026-09-23: HTTP 200, Shopify, qiymət HTML-də (data-js-product-price). Saytın adı 'İnşaat Materialları və Məişət Texnikası Mağazası': kosmetika yox, tikinti və texnikadır. 2026-09-24: gecə kataloqundan hələlik çıxarılıb (28 824 ünvan, tam dövr ~40 gecə, tikinti və məişət malları hədəf kateqoriyalardan kənardır). catalog: false sətrini silməklə geri qaytarılır, kursor saxlanılıb.",
   },
   {
     id: "yvesrocher",
