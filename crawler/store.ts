@@ -4,6 +4,7 @@ import { db } from "../lib/firebaseAdmin";
 import { searchKeysFor } from "../lib/searchKeys";
 import type { SourceType } from "../lib/types";
 import type { Identity } from "./identity";
+import { dropExcluded } from "./exclude";
 import { keyDocId, keysOf, resolveIdentity, type KnownKey } from "./keys";
 import type { StatusUpdate } from "./status";
 
@@ -28,6 +29,7 @@ export interface SaveSummary {
   offersUnchanged: number;
   offersSkipped: number;
   conflicts: number;
+  excluded: number;
 }
 
 const CHUNK = 60;
@@ -37,7 +39,8 @@ function offerId(sourceId: string, pageUrl: string): string {
   return createHash("sha1").update(`${sourceId}|${pageUrl}`).digest("hex").slice(0, 24);
 }
 
-export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
+export async function saveItems(allItems: SaveItem[]): Promise<SaveSummary> {
+  const { kept: items, dropped } = dropExcluded(allItems);
   const summary: SaveSummary = {
     productsNew: 0,
     productsSeen: 0,
@@ -46,6 +49,7 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
     offersUnchanged: 0,
     offersSkipped: 0,
     conflicts: 0,
+    excluded: dropped,
   };
   const firestore = db();
   const now = Timestamp.now();

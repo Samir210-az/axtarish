@@ -3,6 +3,7 @@ import { PoliteFetcher } from "./http";
 import { extractProduct } from "./jsonld";
 import { entryIndex, nextCursor } from "./catalog";
 import { evaluatePage } from "./evaluate";
+import { shouldSkipUrl } from "./exclude";
 import { hasWordSlug, querySpec, urlMatchesQuery } from "./match";
 import {
   NIGHTLY_MINUTES,
@@ -102,8 +103,14 @@ async function processSource(
   let noData = 0;
   let outOfStock = 0;
   let unidentified = 0;
+  let excluded = 0;
+  let unread = 0;
 
   for (const entry of picked) {
+    if (shouldSkipUrl(entry.loc)) {
+      unread += 1;
+      continue;
+    }
     const page = await fetcher.get(entry.loc);
     if (!page.ok) {
       failures[page.reason] = (failures[page.reason] ?? 0) + 1;
@@ -115,11 +122,12 @@ async function processSource(
     else if (outcome === "noData") noData += 1;
     else if (outcome === "outOfStock") outOfStock += 1;
     else if (outcome === "unidentified") unidentified += 1;
+    else if (outcome === "excluded") excluded += 1;
     else mismatch += 1;
   }
 
   lines.push(
-    `cəhd: ${picked.length}, çıxarıldı: ${items.length}, məlumat yoxdur: ${noData}, stokda yoxdur: ${outOfStock}, tanınmadı: ${unidentified}, sorğuya uyğun deyil: ${mismatch}, uğursuz: ${JSON.stringify(failures)}`,
+    `cəhd: ${picked.length}, çıxarıldı: ${items.length}, məlumat yoxdur: ${noData}, stokda yoxdur: ${outOfStock}, tanınmadı: ${unidentified}, sorğuya uyğun deyil: ${mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${excluded}, uğursuz: ${JSON.stringify(failures)}`,
   );
   for (const item of items.slice(0, 6)) {
     const i = item.identity;
@@ -148,7 +156,8 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   const elapsedMinutes = () => (Date.now() - startedAt) / 60_000;
 
   const failures: Record<string, number> = {};
-  const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0 };
+  const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0, excluded: 0 };
+  let unread = 0;
   let processed = 0;
   let extracted = 0;
   let written = 0;
@@ -175,6 +184,10 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   while (processed < total && Date.now() < deadline) {
     const entry = sorted[entryIndex(start, processed, total)] as SitemapEntry;
     processed += 1;
+    if (shouldSkipUrl(entry.loc)) {
+      unread += 1;
+      continue;
+    }
     const page = await fetcher.get(entry.loc);
     if (!page.ok) {
       failures[page.reason] = (failures[page.reason] ?? 0) + 1;
@@ -199,7 +212,7 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   lines.push(
     `baxıldı: ${processed}/${total} (kursor ${start} → ${nextCursor(start, processed, total)}), çıxarıldı: ${extracted}, yazıldı: ${written}, ` +
       `məlumat yoxdur: ${tally.noData}, stokda yoxdur: ${tally.outOfStock}, tanınmadı: ${tally.unidentified}, ` +
-      `uyğunsuz: ${tally.mismatch}, uğursuz: ${JSON.stringify(failures)}, ` +
+      `uyğunsuz: ${tally.mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${tally.excluded}, uğursuz: ${JSON.stringify(failures)}, ` +
       `gizlədildi: silinmiş=${marked.gone}, stokda yox=${marked.outOfStock}`,
   );
   const nights = cycleNights(total, processed, Math.max(elapsedMinutes(), 0.1));

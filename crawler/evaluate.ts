@@ -1,3 +1,4 @@
+import { isExcludedText } from "./exclude";
 import { identify } from "./identity";
 import { extractProduct } from "./jsonld";
 import { querySpec, textMatchesQuery } from "./match";
@@ -9,7 +10,7 @@ import { extractWooProduct } from "./woo";
 import type { Source } from "./sources";
 import type { SaveItem } from "./store";
 
-export type PageOutcome = "ok" | "noData" | "outOfStock" | "unidentified" | "mismatch";
+export type PageOutcome = "ok" | "noData" | "outOfStock" | "unidentified" | "mismatch" | "excluded";
 
 const CATEGORY_HINT: Record<string, string> = { parfüm: "perfume", elektronika: "electronics" };
 
@@ -31,6 +32,7 @@ export function evaluatePage(
           ? extractTapalAd(page.body, page.url)
           : extractProduct(page.body);
   if (!product) return { outcome: "noData" };
+  if (isExcludedText(`${product.brand ?? ""} ${product.name}`)) return { outcome: "excluded" };
   if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {
     const oldPrice = extractNopOldPrice(page.body);
     if (oldPrice !== null && oldPrice > product.priceAzn) product.oldPriceAzn = oldPrice;
