@@ -50,7 +50,7 @@ async function main() {
   }
 
   const deleteProducts = [...perProduct]
-    .filter(([id, row]) => row.excluded > 0 && row.excluded === row.total)
+    .filter(([, row]) => row.excluded > 0 && row.excluded === row.total)
     .map(([id]) => id);
   const bySource = new Map<string, number>();
   for (const o of excludedOffers) bySource.set(o.source, (bySource.get(o.source) ?? 0) + 1);
