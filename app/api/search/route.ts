@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { enqueueQuery, needsMoreData } from "@/lib/searchQueue";
-import { parseListOptions, runSearch, validateSearchInput } from "@/lib/service";
+import { cachedRunSearch } from "@/lib/cachedSearch";
+import { parseListOptions, validateSearchInput } from "@/lib/service";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
   const input = validateSearchInput(params.get("q") ?? "", params.get("days") ?? undefined);
   if (!input.ok) return NextResponse.json({ error: input.message }, { status: 400 });
 
-  const outcome = await runSearch(input.q, input.days, parseListOptions(params.get("sort"), params.get("show")));
+  const outcome = await cachedRunSearch(input.q, input.days, parseListOptions(params.get("sort"), params.get("show")));
   if (!outcome.ok) return NextResponse.json({ error: outcome.message }, { status: outcome.status });
 
   if (needsMoreData(outcome.data)) after(() => enqueueQuery(input.q).catch(() => undefined));

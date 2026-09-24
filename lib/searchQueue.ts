@@ -6,6 +6,21 @@ import { parseQuery } from "./normalize";
 import type { SearchResponse } from "./types";
 
 const REQUEUE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+const RECENT_MS = 60 * 60 * 1000;
+const RECENT_MAX = 500;
+const recentlyQueued = new Map<string, number>();
+
+export function shouldSkipEnqueue(recent: Map<string, number>, key: string, now: number): boolean {
+  const until = recent.get(key);
+  if (until !== undefined && until > now) return true;
+  if (recent.size >= RECENT_MAX) {
+    const oldest = recent.keys().next().value;
+    if (oldest !== undefined) recent.delete(oldest);
+  }
+  recent.delete(key);
+  recent.set(key, now + RECENT_MS);
+  return false;
+}
 const MAX_TOKENS = 6;
 const MAX_TOKEN_LENGTH = 30;
 
@@ -28,6 +43,7 @@ export function needsMoreData(data: SearchResponse): boolean {
 export async function enqueueQuery(query: string): Promise<void> {
   const key = queueKey(query);
   if (!key) return;
+  if (shouldSkipEnqueue(recentlyQueued, key, Date.now())) return;
 
   const ref = db().collection("search_queue").doc(key);
   const snapshot = await ref.get();

@@ -43,6 +43,13 @@ export function parseListOptions(
   return { sort, limit };
 }
 
+export function isQuotaError(error: unknown): boolean {
+  const code =
+    typeof error === "object" && error !== null && "code" in error ? (error as { code?: unknown }).code : undefined;
+  const message = error instanceof Error ? error.message : "";
+  return code === 8 || /RESOURCE_EXHAUSTED|quota exceeded/i.test(message);
+}
+
 export type SearchOutcome = { ok: true; data: SearchResponse } | { ok: false; status: 500 | 503; message: string };
 
 export async function runSearch(q: string, days: number, options: SearchOptions = {}): Promise<SearchOutcome> {
@@ -55,6 +62,9 @@ export async function runSearch(q: string, days: number, options: SearchOptions 
       return { ok: false, status: 503, message: "Baza hələ qoşulmayıb." };
     }
     console.error("Axtarış xətası:", error instanceof Error ? error.message : "naməlum xəta");
+    if (isQuotaError(error)) {
+      return { ok: false, status: 503, message: "Sayt müvəqqəti yüklənib. Bir neçə saatdan sonra yenidən yoxlayın." };
+    }
     return {
       ok: false,
       status: 500,

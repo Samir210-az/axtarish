@@ -21,7 +21,7 @@ export function isSortKey(value: string): value is SortKey {
 export const MAX_OFFERS_PER_QUERY = 1500;
 export const MAX_OFFERS_SHOWN_PER_PRODUCT = 50;
 
-export const MAX_PRODUCTS_PER_KEY = 1500;
+export const MAX_PRODUCTS_PER_KEY = 600;
 export const PRODUCT_CACHE_TTL_MS = 60_000;
 export const PRODUCT_CACHE_MAX_ENTRIES = 200;
 

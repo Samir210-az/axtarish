@@ -2,7 +2,8 @@ import Link from "next/link";
 import { after } from "next/server";
 import { ALLOWED_WINDOWS, DEFAULT_SORT, MAX_RESULT_PRODUCTS, MAX_SHOW, type SortKey } from "@/lib/config";
 import { enqueueQuery, needsMoreData } from "@/lib/searchQueue";
-import { parseListOptions, runSearch, validateSearchInput } from "@/lib/service";
+import { cachedRunSearch } from "@/lib/cachedSearch";
+import { parseListOptions, validateSearchInput } from "@/lib/service";
 import { ProductSection } from "./ProductSection";
 import { SortBar } from "./SortBar";
 
@@ -34,7 +35,7 @@ export async function Results({
   if (!input.ok) return <Notice title={input.message} alert />;
 
   const options = parseListOptions(sort, show);
-  const outcome = await runSearch(input.q, input.days, options);
+  const outcome = await cachedRunSearch(input.q, input.days, options);
   if (!outcome.ok) return <Notice title={outcome.message} alert />;
 
   const { data } = outcome;
