@@ -10,7 +10,7 @@ const amount = (value: string): string =>
 const SALE = `<p class="price"><del aria-hidden="true">${amount("369.0")}</del> <span class="screen-reader-text">Original price was: 369.0&nbsp;AZN.</span><ins aria-hidden="true">${amount("119.0")}</ins><span class="screen-reader-text">Current price is: 119.0&nbsp;AZN.</span></p>`;
 const REGULAR = `<p class="price">${amount("799.0")}</p>`;
 const RANGE = `<p class="price">${amount("100.0")} – ${amount("200.0")}</p>`;
-const RELATED = `<div class="related"><h3><a href="/product/x/">Apple iPhone 14 Pro</a></h3><span class="price"><del>${amount("975.0")}</del><ins>${amount("799.0")}</ins></span></div>`;
+const RELATED = `<div class="wd-carousel-item"><div class="wd-product product type-product post-134503 status-publish outofstock"><h3><a href="/product/x/">Apple iPhone 14 Pro</a></h3><span class="price"><del>${amount("975.0")}</del><ins>${amount("799.0")}</ins></span></div></div>`;
 
 const LD = (availability: string): string =>
   '<script type="application/ld+json">{"@context":"https://schema.org/","@graph":[{"@type":"BreadcrumbList"},' +
@@ -18,9 +18,14 @@ const LD = (availability: string): string =>
   '"priceSpecification":[{"@type":"UnitPriceSpecification","price":"186.5","priceCurrency":"USD"}],' +
   `"availability":"https://schema.org/${availability}"}]}]}</script>`;
 
-function page(priceBlock: string, availability = "InStock", bodyClass = "single-product"): string {
-  return `<html><body class="${bodyClass}">${LD(availability)}<div class="sticky"><span class="price">${amount("1.0")}</span></div>
-    <h1 class="product_title entry-title wd-entities-title"> CHRISTIAN DIOR SAUVAGE (M) EDP 100ML </h1>${priceBlock}${RELATED}</body></html>`;
+function page(
+  priceBlock: string,
+  availability = "InStock",
+  containerClass = "product type-product post-131136 instock",
+): string {
+  return `<html><body class="single-product">${availability ? LD(availability) : ""}<div class="sticky"><span class="price">${amount("1.0")}</span></div>
+    <div id="product-131136" class="${containerClass}">
+    <h1 class="product_title entry-title wd-entities-title"> CHRISTIAN DIOR SAUVAGE (M) EDP 100ML </h1>${priceBlock}</div>${RELATED}</body></html>`;
 }
 
 describe("extractWooProduct", () => {
@@ -47,11 +52,18 @@ describe("extractWooProduct", () => {
     expect(extractWooProduct(page(""))).toBeNull();
   });
 
-  it("stokda olmayanı JSON-LD və ya sinif adından tanıyır", () => {
+  it("əlaqəli məhsulun outofstock sinfi əsas məhsulun stokuna təsir etmir", () => {
+    expect(extractWooProduct(page(SALE))?.availability).toBe("in_stock");
+    expect(extractWooProduct(page(SALE, "", "product type-product instock"))?.availability).toBe("in_stock");
+  });
+
+  it("stokda olmayanı JSON-LD-dən və ya əsas konteynerin sinfindən tanıyır", () => {
     expect(extractWooProduct(page(SALE, "OutOfStock"))?.availability).toBe("out_of_stock");
-    expect(extractWooProduct(page(SALE, "", "single-product outofstock"))?.availability).toBe("out_of_stock");
-    expect(extractWooProduct(page(SALE, "", "single-product instock"))?.availability).toBe("in_stock");
-    expect(extractWooProduct(page(SALE, ""))?.availability).toBe("unknown");
+    expect(extractWooProduct(page(SALE, "", "product type-product outofstock"))?.availability).toBe("out_of_stock");
+  });
+
+  it("nə JSON-LD, nə də sinif varsa naməlum saxlayır", () => {
+    expect(extractWooProduct(page(SALE, "", "product type-product"))?.availability).toBe("unknown");
   });
 });
 

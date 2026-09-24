@@ -34,8 +34,15 @@ function availabilityOf(html: string, node: Record<string, unknown> | null): Ext
   const offers = node?.offers;
   const first = (Array.isArray(offers) ? offers[0] : offers) as Record<string, unknown> | undefined;
   const text = typeof first?.availability === "string" ? first.availability : "";
-  if (/OutOfStock|SoldOut|Discontinued/i.test(text) || /class="[^"]*\boutofstock\b/.test(html)) return "out_of_stock";
-  if (/InStock|LimitedAvailability|PreOrder/i.test(text) || /class="[^"]*\binstock\b/.test(html)) return "in_stock";
+  if (/OutOfStock|SoldOut|Discontinued/i.test(text)) return "out_of_stock";
+  if (/InStock|LimitedAvailability|PreOrder/i.test(text)) return "in_stock";
+
+  const container = /<div[^>]+id="product-\d+"[^>]*class="([^"]*)"|<div[^>]+class="([^"]*)"[^>]*id="product-\d+"/.exec(
+    html,
+  );
+  const classes = container?.[1] ?? container?.[2] ?? "";
+  if (/\boutofstock\b/.test(classes)) return "out_of_stock";
+  if (/\binstock\b/.test(classes)) return "in_stock";
   return "unknown";
 }
 
