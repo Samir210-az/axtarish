@@ -35,7 +35,7 @@ jobs:
           set --
           if [ "$INPUT_DRY" != "false" ]; then set -- --dry; fi
           if [ "$INPUT_GENERIC" = "true" ]; then set -- "$@" --generic-marketplace; fi
-          npx tsx crawler/purge-excluded.ts "$@" | tee purge-output.md
+          npx tsx crawler/purge-excluded.ts "$@" 2>&1 | tee purge-output.md
       - name: Publish output
         if: always()
         run: |
