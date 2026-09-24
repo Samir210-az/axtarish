@@ -61,3 +61,30 @@ describe("PoliteFetcher keçici xətalarda təkrar cəhd", () => {
     expect(await fetcher.get("https://a.az/p/2")).toMatchObject({ ok: true, body: "ikinci" });
   });
 });
+
+describe("PoliteFetcher canlı proqres (CRAWL_VERBOSE)", () => {
+  it("yalnız sayt və yolu yazır, sorğu sətrini yox, və mühit dəyişəni olmadan susur", async () => {
+    const lines: string[] = [];
+    const spy = (message: unknown) => void lines.push(String(message));
+    const original = console.error;
+    console.error = spy as typeof console.error;
+    const previous = process.env.CRAWL_VERBOSE;
+    try {
+      const { fetcher } = flaky({}, { "https://a.az/robots.txt": "User-agent: *\n", "https://a.az/p/1": "salam" });
+      delete process.env.CRAWL_VERBOSE;
+      await fetcher.get("https://a.az/p/1?token=gizli");
+      expect(lines).toHaveLength(0);
+
+      process.env.CRAWL_VERBOSE = "1";
+      await fetcher.get("https://a.az/p/1?token=gizli");
+      await fetcher.get("https://a.az/yoxdur");
+      expect(lines[0]).toMatch(/^\[\d+\.\ds\] 200 0 KB a\.az\/p\/1$/);
+      expect(lines[1]).toMatch(/^\[\d+\.\ds\] ATILDI http HTTP 404 a\.az\/yoxdur$/);
+      expect(lines.join(" ")).not.toContain("gizli");
+    } finally {
+      console.error = original;
+      if (previous === undefined) delete process.env.CRAWL_VERBOSE;
+      else process.env.CRAWL_VERBOSE = previous;
+    }
+  });
+});

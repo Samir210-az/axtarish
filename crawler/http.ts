@@ -50,7 +50,11 @@ export class PoliteFetcher {
     return Math.max(MIN_DELAY_MS, (state.rules.crawlDelaySec ?? 0) * 1000);
   }
 
-  private async request(url: string, attempts = 2): Promise<{ status: number; body: string; finalUrl: string }> {
+  private async request(
+    url: string,
+    attempts = 2,
+    timeoutMs = 20_000,
+  ): Promise<{ status: number; body: string; finalUrl: string }> {
     for (let attempt = 1; ; attempt += 1) {
       try {
         const response = await this.fetchImpl(url, {
@@ -60,7 +64,7 @@ export class PoliteFetcher {
             "Accept-Language": "az,en;q=0.7",
           },
           redirect: "follow",
-          signal: AbortSignal.timeout(20_000),
+          signal: AbortSignal.timeout(timeoutMs),
         });
         const text = await response.text();
         return { status: response.status, body: text.slice(0, MAX_BODY_CHARS), finalUrl: response.url || url };
@@ -110,6 +114,27 @@ export class PoliteFetcher {
   }
 
   async get(rawUrl: string): Promise<FetchOutcome> {
+    const started = Date.now();
+    const outcome = await this.getInner(rawUrl);
+    if (process.env.CRAWL_VERBOSE) {
+      const seconds = ((Date.now() - started) / 1000).toFixed(1);
+      let where = rawUrl;
+      try {
+        const parsed = new URL(rawUrl);
+        where = parsed.host + parsed.pathname;
+      } catch {
+        /* dəyişməz qalır */
+      }
+      console.error(
+        outcome.ok
+          ? `[${seconds}s] ${outcome.status} ${(outcome.body.length / 1024).toFixed(0)} KB ${where}`
+          : `[${seconds}s] ATILDI ${outcome.reason} ${outcome.detail} ${where}`,
+      );
+    }
+    return outcome;
+  }
+
+  private async getInner(rawUrl: string): Promise<FetchOutcome> {
     let url: URL;
     try {
       url = new URL(rawUrl);
@@ -131,7 +156,8 @@ export class PoliteFetcher {
     if (wait > 0) await this.sleep(wait);
 
     try {
-      const { status, body, finalUrl } = await this.request(url.toString());
+      const timeoutMs = /\.xml$/i.test(url.pathname) ? 90_000 : 20_000;
+      const { status, body, finalUrl } = await this.request(url.toString(), 2, timeoutMs);
       state.nextAllowedAt = this.now() + this.delayFor(state);
       if (isBlockResponse(status, body)) {
         state.state = "blocked";
