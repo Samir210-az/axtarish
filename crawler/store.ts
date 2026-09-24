@@ -5,6 +5,7 @@ import { searchKeysFor } from "../lib/searchKeys";
 import type { SourceType } from "../lib/types";
 import type { Identity } from "./identity";
 import { keyDocId, keysOf, resolveIdentity, type KnownKey } from "./keys";
+import type { StatusUpdate } from "./status";
 
 export interface SaveItem {
   identity: Identity;
@@ -22,10 +23,12 @@ export interface SaveSummary {
   offersNew: number;
   offersChanged: number;
   offersUnchanged: number;
+  offersSkipped: number;
   conflicts: number;
 }
 
 const CHUNK = 60;
+const RECHECK_SKIP_MS = 2 * 24 * 60 * 60 * 1000;
 
 function offerId(sourceId: string, pageUrl: string): string {
   return createHash("sha1").update(`${sourceId}|${pageUrl}`).digest("hex").slice(0, 24);
@@ -38,6 +41,7 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
     offersNew: 0,
     offersChanged: 0,
     offersUnchanged: 0,
+    offersSkipped: 0,
     conflicts: 0,
   };
   const firestore = db();
@@ -69,6 +73,9 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
     const productSnaps = await firestore.getAll(...productRefs);
     const offerSnaps = await firestore.getAll(...offerRefs);
     const existingProducts = new Set(productSnaps.filter((s) => s.exists).map((s) => s.id));
+    const knownAliases = new Map(
+      productSnaps.filter((s) => s.exists).map((s) => [s.id, (s.get("aliases") as string[] | undefined) ?? []]),
+    );
 
     const batch = firestore.batch();
     const handled = new Set<string>();
@@ -99,6 +106,7 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
       summary.productsSeen += 1;
       const ref = firestore.collection("products").doc(productId);
       if (existingProducts.has(productId)) {
+        if ((knownAliases.get(productId) ?? []).includes(identity.displayName) && !resolution.adoptGtin) return;
         const aliasKeys = searchKeysFor({ brand: "", model: "", displayName: identity.displayName, aliases: [] });
         batch.update(ref, {
           aliases: FieldValue.arrayUnion(identity.displayName),
@@ -153,6 +161,19 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
         });
       }
 
+      const checkedAt = (snap.get("effectiveAt") as Timestamp | undefined)?.toMillis?.() ?? 0;
+      const recentlyVerified =
+        snap.exists &&
+        !changed &&
+        now.toMillis() - checkedAt < RECHECK_SKIP_MS &&
+        (snap.get("status") ?? "active") === "active" &&
+        snap.get("productId") === productId &&
+        (snap.get("oldPriceAzn") ?? null) === item.oldPriceAzn;
+      if (recentlyVerified) {
+        summary.offersSkipped += 1;
+        return;
+      }
+
       batch.set(
         ref,
         {
@@ -178,4 +199,31 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
     await batch.commit();
   }
   return summary;
+}
+
+export async function markOffers(updates: StatusUpdate[]): Promise<number> {
+  if (updates.length === 0) return 0;
+  const firestore = db();
+  const now = Timestamp.now();
+  let changed = 0;
+
+  for (let start = 0; start < updates.length; start += 200) {
+    const chunk = updates.slice(start, start + 200);
+    const snaps = await firestore.getAll(
+      ...chunk.map((u) => firestore.collection("offers").doc(offerId(u.sourceId, u.pageUrl))),
+    );
+    const batch = firestore.batch();
+    let ops = 0;
+    snaps.forEach((snap, index) => {
+      const update = chunk[index]!;
+      if (!snap.exists || (snap.get("status") ?? "active") === update.status) return;
+      batch.update(snap.ref, { status: update.status, statusAt: now });
+      ops += 1;
+    });
+    if (ops > 0) {
+      await batch.commit();
+      changed += ops;
+    }
+  }
+  return changed;
 }

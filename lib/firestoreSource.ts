@@ -71,6 +71,7 @@ export async function loadOffers(productIds: string[], since: Date): Promise<Off
         skipped += 1;
         continue;
       }
+      if (parsed.data.status !== "active") continue;
       const { effectiveAt, ...rest } = parsed.data;
       offers.push({ id: doc.id, ...rest, effectiveAt: effectiveAt.toDate() });
     }

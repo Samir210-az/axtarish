@@ -3,9 +3,7 @@ import { AUTHENTICITY, SELLER_TYPES, SOURCE_TYPES, VARIANTS } from "./types";
 
 const timestampLike = z.custom<{ toDate: () => Date }>(
   (value) =>
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as { toDate?: unknown }).toDate === "function",
+    typeof value === "object" && value !== null && typeof (value as { toDate?: unknown }).toDate === "function",
 );
 
 export const productDocSchema = z.object({
@@ -29,4 +27,5 @@ export const offerDocSchema = z.object({
   sellerName: z.string().nullable().default(null),
   sellerUrl: z.string().nullable().default(null),
   effectiveAt: timestampLike,
+  status: z.enum(["active", "gone", "out_of_stock"]).default("active"),
 });

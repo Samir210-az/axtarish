@@ -16,7 +16,9 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run diagnostics
-        run: npx tsx crawler/diag-lastmod.ts 2>&1 | tee diag-output.md
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: npx tsx crawler/diag-status.ts 2>&1 | tee diag-output.md
       - name: Publish output
         if: always()
         run: |

@@ -4,6 +4,7 @@ import { extractProduct } from "./jsonld";
 import { entryIndex, nextCursor } from "./catalog";
 import { evaluatePage } from "./evaluate";
 import { hasWordSlug, querySpec, urlMatchesQuery } from "./match";
+import { STALE_CYCLE_NIGHTS, cycleNights, statusForFailure, statusForOutcome, type StatusUpdate } from "./status";
 import { collectProductUrls, extractLinks, type SitemapEntry } from "./sitemap";
 import { SOURCES, type Source } from "./sources";
 import type { SaveItem } from "./store";
@@ -132,7 +133,8 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   const sorted = [...entries].sort((a, b) => a.loc.localeCompare(b.loc));
   const total = sorted.length;
   const state = DRY ? null : await import("./state");
-  const save = DRY ? null : (await import("./store")).saveItems;
+  const store = DRY ? null : await import("./store");
+  const save = store?.saveItems ?? null;
   const start = state ? (await state.readCursor(source.id)) % total : 0;
   const deadline = Date.now() + MINUTES * 60_000;
 
@@ -142,6 +144,8 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   let extracted = 0;
   let written = 0;
   let batch: SaveItem[] = [];
+  const statusUpdates: StatusUpdate[] = [];
+  const marked = { gone: 0, outOfStock: 0 };
 
   const flush = async () => {
     if (batch.length > 0 && save) {
@@ -149,6 +153,13 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
       written += batch.length;
     }
     batch = [];
+    if (store && statusUpdates.length > 0) {
+      const pending = statusUpdates.splice(0);
+      const changed = await store.markOffers(pending);
+      const goneShare = pending.filter((u) => u.status === "gone").length / pending.length;
+      marked.gone += Math.round(changed * goneShare);
+      marked.outOfStock += changed - Math.round(changed * goneShare);
+    }
     if (state) await state.writeCursor(source.id, nextCursor(start, processed, total), total, processed);
   };
 
@@ -159,6 +170,8 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
     if (!page.ok) {
       failures[page.reason] = (failures[page.reason] ?? 0) + 1;
       if (page.reason === "blocked" || page.reason === "host_closed") break;
+      const gone = statusForFailure(page.reason, page.detail);
+      if (gone) statusUpdates.push({ sourceId: source.id, pageUrl: entry.loc, status: gone });
       continue;
     }
     const { outcome, item } = evaluatePage(source, page);
@@ -167,16 +180,28 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
       extracted += 1;
     } else if (outcome !== "ok") {
       tally[outcome as keyof typeof tally] += 1;
+      const status = statusForOutcome(outcome);
+      if (status) statusUpdates.push({ sourceId: source.id, pageUrl: page.url, status });
     }
-    if (batch.length >= FLUSH_EVERY) await flush();
+    if (batch.length >= FLUSH_EVERY || statusUpdates.length >= FLUSH_EVERY) await flush();
   }
   await flush();
 
   lines.push(
     `baxıldı: ${processed}/${total} (kursor ${start} → ${nextCursor(start, processed, total)}), çıxarıldı: ${extracted}, yazıldı: ${written}, ` +
       `məlumat yoxdur: ${tally.noData}, stokda yoxdur: ${tally.outOfStock}, tanınmadı: ${tally.unidentified}, ` +
-      `uyğunsuz: ${tally.mismatch}, uğursuz: ${JSON.stringify(failures)}`,
+      `uyğunsuz: ${tally.mismatch}, uğursuz: ${JSON.stringify(failures)}, ` +
+      `gizlədildi: silinmiş=${marked.gone}, stokda yox=${marked.outOfStock}`,
   );
+  const nights = cycleNights(total, processed);
+  if (nights !== null) {
+    lines.push(
+      `tam dövr ≈ ${nights} gecə` +
+        (nights > STALE_CYCLE_NIGHTS
+          ? ` (DİQQƏT: ${STALE_CYCLE_NIGHTS} gecədən uzundur, qiymətlər pəncərədə köhnələ bilər)`
+          : ""),
+    );
+  }
   return lines;
 }
 
