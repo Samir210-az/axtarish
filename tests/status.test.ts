@@ -20,9 +20,11 @@ describe("crawler/status", () => {
   });
 
   it("tam dövr uzunluğunu gecə ilə hesablayır", () => {
-    expect(cycleNights(14752, 800)).toBe(19);
-    expect(cycleNights(100, 100)).toBe(1);
-    expect(cycleNights(100, 0)).toBeNull();
+    expect(cycleNights(14752, 800, 40)).toBe(19);
+    expect(cycleNights(14752, 43, 2)).toBe(18);
+    expect(cycleNights(100, 100, 40)).toBe(1);
+    expect(cycleNights(100, 0, 2)).toBeNull();
+    expect(cycleNights(100, 10, 0)).toBeNull();
   });
 });
 

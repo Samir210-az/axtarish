@@ -4,7 +4,14 @@ import { extractProduct } from "./jsonld";
 import { entryIndex, nextCursor } from "./catalog";
 import { evaluatePage } from "./evaluate";
 import { hasWordSlug, querySpec, urlMatchesQuery } from "./match";
-import { STALE_CYCLE_NIGHTS, cycleNights, statusForFailure, statusForOutcome, type StatusUpdate } from "./status";
+import {
+  NIGHTLY_MINUTES,
+  STALE_CYCLE_NIGHTS,
+  cycleNights,
+  statusForFailure,
+  statusForOutcome,
+  type StatusUpdate,
+} from "./status";
 import { collectProductUrls, extractLinks, type SitemapEntry } from "./sitemap";
 import { SOURCES, type Source } from "./sources";
 import type { SaveItem } from "./store";
@@ -136,7 +143,9 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   const store = DRY ? null : await import("./store");
   const save = store?.saveItems ?? null;
   const start = state ? (await state.readCursor(source.id)) % total : 0;
-  const deadline = Date.now() + MINUTES * 60_000;
+  const startedAt = Date.now();
+  const deadline = startedAt + MINUTES * 60_000;
+  const elapsedMinutes = () => (Date.now() - startedAt) / 60_000;
 
   const failures: Record<string, number> = {};
   const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0 };
@@ -193,10 +202,10 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
       `uyğunsuz: ${tally.mismatch}, uğursuz: ${JSON.stringify(failures)}, ` +
       `gizlədildi: silinmiş=${marked.gone}, stokda yox=${marked.outOfStock}`,
   );
-  const nights = cycleNights(total, processed);
+  const nights = cycleNights(total, processed, Math.max(elapsedMinutes(), 0.1));
   if (nights !== null) {
     lines.push(
-      `tam dövr ≈ ${nights} gecə` +
+      `tam dövr ≈ ${nights} gecə (gecədə ${NIGHTLY_MINUTES} dəq. büdcə ilə)` +
         (nights > STALE_CYCLE_NIGHTS
           ? ` (DİQQƏT: ${STALE_CYCLE_NIGHTS} gecədən uzundur, qiymətlər pəncərədə köhnələ bilər)`
           : ""),
