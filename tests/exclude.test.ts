@@ -123,9 +123,14 @@ describe("saxlama qarşısında son qoruma və səhifə səviyyəsi", () => {
     expect(car).toEqual({ outcome: "excluded" });
     const ok = evaluatePage(source, {
       url: "https://tapal.az/elan/752-x",
-      body: html("Dəhliz dolabı - 220 AZN | Bakı - TapAl.az"),
+      body: html("Samsung Galaxy S23 256GB - 220 AZN | Bakı - TapAl.az"),
     });
     expect(ok.outcome).toBe("ok");
+    const generic = evaluatePage(source, {
+      url: "https://tapal.az/elan/753-x",
+      body: html("Dəhliz dolabı - 220 AZN | Bakı - TapAl.az"),
+    });
+    expect(generic.outcome).toBe("generic");
   });
 });
 

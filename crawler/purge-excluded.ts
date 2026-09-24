@@ -1,8 +1,10 @@
 import type { WriteBatch } from "firebase-admin/firestore";
 import { db } from "../lib/firebaseAdmin";
+import { isSpecificAd } from "./evaluate";
 import { isExcludedText, shouldSkipUrl } from "./exclude";
 
 const DRY = process.argv.includes("--dry");
+const GENERIC = process.argv.includes("--generic-marketplace");
 const BATCH_OPS = 400;
 
 async function runOps(ops: ((batch: WriteBatch) => void)[]): Promise<void> {
@@ -21,7 +23,12 @@ async function main() {
   const offers = await firestore.collection("offers").limit(20000).get();
 
   const names = new Map<string, string>();
-  for (const doc of products.docs) names.set(doc.id, String(doc.get("displayName") ?? ""));
+  const genericProducts = new Set<string>();
+  for (const doc of products.docs) {
+    names.set(doc.id, String(doc.get("displayName") ?? ""));
+    const nameKey = doc.get("nameKey");
+    if (GENERIC && !isSpecificAd(false, typeof nameKey === "string" ? nameKey : null)) genericProducts.add(doc.id);
+  }
   const excludedProducts = new Set([...names].filter(([, name]) => isExcludedText(name)).map(([id]) => id));
 
   const perProduct = new Map<string, { total: number; excluded: number }>();
@@ -34,7 +41,8 @@ async function main() {
   for (const doc of offers.docs) {
     const productId = String(doc.get("productId"));
     const url = String(doc.get("sellerUrl") ?? "");
-    const isBad = excludedProducts.has(productId) || (url !== "" && shouldSkipUrl(url));
+    const genericAd = GENERIC && doc.get("sourceType") === "marketplace" && genericProducts.has(productId);
+    const isBad = excludedProducts.has(productId) || genericAd || (url !== "" && shouldSkipUrl(url));
     const row = perProduct.get(productId) ?? { total: 0, excluded: 0 };
     row.total += 1;
     if (isBad) {

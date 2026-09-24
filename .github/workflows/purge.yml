@@ -7,6 +7,10 @@ on:
         description: "Yalnız siyahı (true/false)"
         required: false
         default: "true"
+      generic:
+        description: "Marketplace-də ümumi adlı qeydləri də sil (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -26,9 +30,11 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           INPUT_DRY: ${{ github.event.inputs.dry }}
+          INPUT_GENERIC: ${{ github.event.inputs.generic }}
         run: |
           set --
           if [ "$INPUT_DRY" != "false" ]; then set -- --dry; fi
+          if [ "$INPUT_GENERIC" = "true" ]; then set -- "$@" --generic-marketplace; fi
           npx tsx crawler/purge-excluded.ts "$@" | tee purge-output.md
       - name: Publish output
         if: always()

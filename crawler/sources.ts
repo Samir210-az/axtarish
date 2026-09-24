@@ -13,7 +13,7 @@ export interface Source {
   findings?: string;
   adapter?: "generic-jsonld" | "araz-rsc" | "woo-html" | "tapal-title" | "tap-jsonld";
   azOnly?: boolean;
-  sitemapPolicy?: { startOnly?: string; lastChildren?: number };
+  sitemapPolicy?: { startOnly?: string; lastChildren?: number; maxUrls?: number };
   catalog?: boolean;
   productUrlPattern?: string;
 }
@@ -273,7 +273,7 @@ export const SOURCES: Source[] = [
     azOnly: true,
     catalog: false,
     productUrlPattern: "/elanlar/",
-    sitemapPolicy: { startOnly: "/sitemap\\.xml$", lastChildren: 3 },
+    sitemapPolicy: { startOnly: "/sitemap\\.xml$", lastChildren: 3, maxUrls: 150000 },
     findings:
       "2026-09-24: robots.txt elan səhifələrinə icazə verir (auth, bookmarks, pages/rules, pages/advertising və adında new olan yollar qadağan, gecikmə tələbi yoxdur). İstifadəçi qaydalar səhifəsində skript qadağası tapmadı (mən oxuya bilmirəm). GitHub (ABŞ) IP-sinə yoxlama çıxır, Azərbaycan IP-sindən (Termux sınağı) hamısı HTTP 200: yalnız Azərbaycandakı maşından oxunmalıdır (azOnly). Sitemap: indeks + 61 alt-fayl (tap.azstatic.com, hər biri ~3.6 MB, ~19 000 ünvan, artan nömrə ilə, ən yeni sonda): yalnız son 3 fayl oxunur. Ünvan /elanlar/{kateqoriya}/{alt-kateqoriya}/{nömrə}, ad ünvanda yoxdur. Elan səhifəsi: Product/Offer JSON-LD (price 650.00, AZN), başlıq Ad: 650 AZN — Şəhər, Azərbaycan | nömrə — Tap.Az. Səhifədə telefon nömrəsi var: heç vaxt oxunmur, adlardan da silinir. Satıcı Person blokuna baxılmır. Qadağan kateqoriyalar exclude.ts-dədir.",
   },

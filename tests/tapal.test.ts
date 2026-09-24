@@ -81,14 +81,14 @@ describe("tapal reyestrdə və qiymətə çevrilmədə", () => {
   });
 
   it("elan fərdi satıcı və marketplace kimi saxlanılır, eyni elanın təkrarı eyni satıcı olur", () => {
-    const a = evaluatePage(source, { url: URL_, body: page("Puf kreslo - 85 AZN | Bakı - TapAl.az") });
+    const a = evaluatePage(source, { url: URL_, body: page("Samsung Galaxy S23 256GB - 85 AZN | Bakı - TapAl.az") });
     const b = evaluatePage(source, {
       url: "https://tapal.az/elan/900-puf",
-      body: page("Puf kreslo - 85 AZN | Bakı - TapAl.az"),
+      body: page("Samsung Galaxy S23 256GB - 85 AZN | Bakı - TapAl.az"),
     });
     const c = evaluatePage(source, {
       url: "https://tapal.az/elan/901-puf",
-      body: page("Puf kreslo - 95 AZN | Bakı - TapAl.az"),
+      body: page("Samsung Galaxy S23 256GB - 95 AZN | Bakı - TapAl.az"),
     });
     expect(a.outcome).toBe("ok");
     expect(a.item).toMatchObject({ sellerType: "individual", sourceType: "marketplace", priceAzn: 85 });

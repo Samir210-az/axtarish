@@ -150,7 +150,7 @@ describe("tap reyestrdə", () => {
 
   it("yalnız Azərbaycan maşınından, gecə kataloquna daxil deyil", () => {
     expect(source).toMatchObject({ kind: "marketplace", adapter: "tap-jsonld", azOnly: true, catalog: false });
-    expect(source.sitemapPolicy).toEqual({ startOnly: "/sitemap\\.xml$", lastChildren: 3 });
+    expect(source.sitemapPolicy).toEqual({ startOnly: "/sitemap\\.xml$", lastChildren: 3, maxUrls: 150000 });
   });
 
   it("elan fərdi satıcı və marketplace kimi saxlanılır", () => {
@@ -158,5 +158,42 @@ describe("tap reyestrdə", () => {
     expect(result.outcome).toBe("ok");
     expect(result.item).toMatchObject({ sellerType: "individual", sourceType: "marketplace", priceAzn: 650 });
     expect(result.item?.sellerKey).toMatch(/^ad:/);
+  });
+});
+
+describe("marketplace-də ümumi adlı elanlar saxlanmır", () => {
+  const source = SOURCES.find((s) => s.id === "tap");
+  if (!source) throw new Error("tap yoxdur");
+  const run = (title: string, ld: string | null = null) =>
+    evaluatePage(source, { url: URL_, body: page(`${title}: 100 AZN — Bakı, Azərbaycan | 1 — Tap.Az`, ld) });
+  const ld = (name: string, brand?: string) =>
+    JSON.stringify({
+      "@type": "Product",
+      name,
+      ...(brand ? { brand: { "@type": "Brand", name: brand } } : {}),
+      offers: { "@type": "Offer", price: "100.00", priceCurrency: "AZN" },
+    });
+
+  it.each(["Xalça", "Mətbəx mebeli", 'Gödəkçə "Bershka"', "Meysəri çaxır", "Divan"])("ümumi ad atılır: %s", (title) => {
+    expect(run(title).outcome).toBe("generic");
+  });
+
+  it.each(["Honor 600 Lite Desert Gold 256GB/8GB", "Cisco IP Phone CP-7821-K9", "Apple iPhone 14 Midnight 128GB/4GB"])(
+    "model nömrəsi olan saxlanılır: %s",
+    (title) => {
+      expect(run(title).outcome).toBe("ok");
+    },
+  );
+
+  it("nömrəsiz, amma markalı və 3+ sözlü ad saxlanılır", () => {
+    expect(run("Apple AirPods Pro", ld("Apple AirPods Pro", "Apple")).outcome).toBe("ok");
+    expect(run("Apple Kabel", ld("Apple Kabel", "Apple")).outcome).toBe("generic");
+  });
+
+  it("mağaza mənbələrinə (retailer) bu qayda tətbiq olunmur", () => {
+    const store = SOURCES.find((s) => s.id === "tapal");
+    expect(store?.kind).toBe("marketplace");
+    const arazmarket = SOURCES.find((s) => s.id === "arazmarket");
+    expect(arazmarket?.kind).not.toBe("marketplace");
   });
 });

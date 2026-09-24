@@ -69,7 +69,7 @@ async function discoverFresh(
   const policy = source.sitemapPolicy;
   const collected = await collectProductUrls(fetcher, start, pattern, {
     maxSitemaps: 30,
-    maxUrls: 60000,
+    maxUrls: policy?.maxUrls ?? 60000,
     ...(policy?.startOnly ? { startOnly: new RegExp(policy.startOnly) } : {}),
     ...(policy?.lastChildren ? { lastChildren: policy.lastChildren } : {}),
   });
@@ -116,6 +116,7 @@ async function processSource(
   let outOfStock = 0;
   let unidentified = 0;
   let excluded = 0;
+  let generic = 0;
   let unread = 0;
 
   for (const entry of picked) {
@@ -135,11 +136,12 @@ async function processSource(
     else if (outcome === "outOfStock") outOfStock += 1;
     else if (outcome === "unidentified") unidentified += 1;
     else if (outcome === "excluded") excluded += 1;
+    else if (outcome === "generic") generic += 1;
     else mismatch += 1;
   }
 
   lines.push(
-    `cəhd: ${picked.length}, çıxarıldı: ${items.length}, məlumat yoxdur: ${noData}, stokda yoxdur: ${outOfStock}, tanınmadı: ${unidentified}, sorğuya uyğun deyil: ${mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${excluded}, uğursuz: ${JSON.stringify(failures)}`,
+    `cəhd: ${picked.length}, çıxarıldı: ${items.length}, məlumat yoxdur: ${noData}, stokda yoxdur: ${outOfStock}, tanınmadı: ${unidentified}, sorğuya uyğun deyil: ${mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${excluded}, ümumi (müqayisəsiz) ad: ${generic}, uğursuz: ${JSON.stringify(failures)}`,
   );
   for (const item of items.slice(0, 6)) {
     const i = item.identity;
@@ -168,7 +170,7 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   const elapsedMinutes = () => (Date.now() - startedAt) / 60_000;
 
   const failures: Record<string, number> = {};
-  const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0, excluded: 0 };
+  const tally = { noData: 0, outOfStock: 0, unidentified: 0, mismatch: 0, excluded: 0, generic: 0 };
   let unread = 0;
   let processed = 0;
   let extracted = 0;
@@ -224,7 +226,7 @@ async function crawlCatalog(source: Source, fetcher: PoliteFetcher): Promise<str
   lines.push(
     `baxıldı: ${processed}/${total} (kursor ${start} → ${nextCursor(start, processed, total)}), çıxarıldı: ${extracted}, yazıldı: ${written}, ` +
       `məlumat yoxdur: ${tally.noData}, stokda yoxdur: ${tally.outOfStock}, tanınmadı: ${tally.unidentified}, ` +
-      `uyğunsuz: ${tally.mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${tally.excluded}, uğursuz: ${JSON.stringify(failures)}, ` +
+      `uyğunsuz: ${tally.mismatch}, əmlak/nəqliyyat: oxunmadan ${unread}, oxunub atılan ${tally.excluded}, ümumi ad: ${tally.generic}, uğursuz: ${JSON.stringify(failures)}, ` +
       `gizlədildi: silinmiş=${marked.gone}, stokda yox=${marked.outOfStock}`,
   );
   const nights = cycleNights(total, processed, Math.max(elapsedMinutes(), 0.1));

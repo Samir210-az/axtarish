@@ -11,12 +11,20 @@ import { extractWooProduct } from "./woo";
 import type { Source } from "./sources";
 import type { SaveItem } from "./store";
 
-export type PageOutcome = "ok" | "noData" | "outOfStock" | "unidentified" | "mismatch" | "excluded";
+export type PageOutcome = "ok" | "noData" | "outOfStock" | "unidentified" | "mismatch" | "excluded" | "generic";
 
 const CATEGORY_HINT: Record<string, string> = { parfüm: "perfume", elektronika: "electronics" };
 
 export function defaultCategoryOf(source: Source): string | undefined {
   return source.categories.length === 1 ? CATEGORY_HINT[source.categories[0] as string] : undefined;
+}
+
+export function isSpecificAd(hasBrand: boolean, nameKey: string | null): boolean {
+  if (!nameKey) return false;
+  const tokens = (nameKey.split("|")[0] ?? "").split("-").filter(Boolean);
+  if (tokens.length < 2) return false;
+  if (tokens.some((token) => /\d/.test(token) && token.length >= 2)) return true;
+  return hasBrand && tokens.length >= 3;
 }
 
 export function evaluatePage(
@@ -48,6 +56,8 @@ export function evaluatePage(
     defaultCategory: defaultCategoryOf(source),
   });
   if (!identity) return { outcome: "unidentified" };
+  if (source.kind === "marketplace" && !isSpecificAd(product.brand !== null, identity.nameKey))
+    return { outcome: "generic" };
   const wantedVolume = query ? querySpec(query).volumeMl : null;
   if (wantedVolume !== null && identity.volumeMl !== wantedVolume) return { outcome: "mismatch" };
 
