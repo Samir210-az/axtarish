@@ -7,6 +7,9 @@ function response(overrides: Partial<SearchResponse> = {}): SearchResponse {
     windowDays: 30,
     understood: true,
     matchedProducts: 0,
+    pricedProducts: 0,
+    examinedProducts: 0,
+    sort: "sellers",
     results: [],
     generatedAt: "2026-09-24T00:00:00Z",
     ...overrides,
@@ -22,6 +25,11 @@ function result(stats: GroupStats): ProductResult {
     groups: [{ authenticity: "unknown", stats }],
     offers: [],
     offersTruncated: false,
+    sellerCount: stats.sellerCount,
+    minPriceAzn: 1,
+    maxPriceAzn: 1,
+    maxDiscountPct: null,
+    sellerOffers: [],
   };
 }
 

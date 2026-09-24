@@ -17,6 +17,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   const params = await searchParams;
   const q = (first(params.q) ?? "").trim();
   const daysParam = first(params.days);
+  const sortParam = first(params.sort);
+  const showParam = first(params.show);
   const parsedDays = daysParam === undefined ? SEARCH_WINDOW_DAYS : Number(daysParam);
   const formDays = isAllowedWindow(parsedDays) ? parsedDays : SEARCH_WINDOW_DAYS;
 
@@ -38,17 +40,12 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
             <div className="divider" aria-hidden="true">
               <span />
             </div>
-            <p className="lede">
-              Məhsulun adını yazın. Bazada olan qiymətləri, medianı və satıcı sayını göstəririk.
-            </p>
+            <p className="lede">Məhsulun adını yazın. Bazada olan qiymətləri, medianı və satıcı sayını göstəririk.</p>
             <SearchForm key={`${q}|${formDays}`} initialQuery={q} initialDays={formDays} />
             <div className="examples">
               <span>Nümunələr:</span>
               {EXAMPLES.map((example) => (
-                <Link
-                  key={example}
-                  href={`/?${new URLSearchParams({ q: example, days: String(formDays) })}`}
-                >
+                <Link key={example} href={`/?${new URLSearchParams({ q: example, days: String(formDays) })}`}>
                   {example}
                 </Link>
               ))}
@@ -57,14 +54,14 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
 
           {q ? (
             <Suspense
-              key={`${q}|${daysParam ?? ""}`}
+              key={`${q}|${daysParam ?? ""}|${sortParam ?? ""}|${showParam ?? ""}`}
               fallback={
                 <p className="loading" role="status">
                   Axtarılır…
                 </p>
               }
             >
-              <Results q={q} days={daysParam} />
+              <Results q={q} days={daysParam} sort={sortParam} show={showParam} />
             </Suspense>
           ) : (
             <StripLegend />

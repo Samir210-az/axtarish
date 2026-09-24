@@ -1,3 +1,4 @@
+import type { SortKey } from "./config";
 export const VARIANTS = ["edt", "edp", "parfum", "elixir", "cologne"] as const;
 export type Variant = (typeof VARIANTS)[number];
 
@@ -77,12 +78,20 @@ export interface ProductResult {
   groups: Array<{ authenticity: Authenticity; stats: GroupStats }>;
   offers: PublicOffer[];
   offersTruncated: boolean;
+  sellerCount: number;
+  minPriceAzn: number;
+  maxPriceAzn: number;
+  maxDiscountPct: number | null;
+  sellerOffers: PublicOffer[];
 }
 
 export interface SearchResponse {
   windowDays: number;
   understood: boolean;
   matchedProducts: number;
+  pricedProducts: number;
+  examinedProducts: number;
+  sort: SortKey;
   results: ProductResult[];
   generatedAt: string;
 }

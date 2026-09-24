@@ -1,6 +1,7 @@
 import { AUTHENTICITY_LABELS, SOURCE_LABELS, formatAzn, formatDay } from "@/lib/format";
-import type { GroupStats, ProductResult } from "@/lib/types";
+import type { GroupStats, ProductResult, PublicOffer } from "@/lib/types";
 import { MIN_SELLERS_FOR_STATS } from "@/lib/config";
+import { compareTwo } from "@/lib/compare";
 import { OfferList } from "./OfferList";
 import { PriceStrip } from "./PriceStrip";
 
@@ -10,8 +11,45 @@ function sourceSummary(mix: GroupStats["sourceMix"]): string {
     .join(", ");
 }
 
-function Group({ group }: { group: ProductResult["groups"][number] }) {
+function storeName(offer: PublicOffer): string {
+  return offer.seller ?? "Fərdi satıcı";
+}
+
+function Comparison({ pair, updatedAt }: { pair: NonNullable<ReturnType<typeof compareTwo>>; updatedAt: string }) {
+  return (
+    <div className="thin compare">
+      <p className="compare-title">2 mağazanın müqayisəsi</p>
+      <ul className="compare-list">
+        <li>
+          <span className="compare-label">Ən ucuz</span>
+          <strong>{formatAzn(pair.cheapest.priceAzn)}</strong>
+          <span className="compare-store">{storeName(pair.cheapest)}</span>
+        </li>
+        <li>
+          <span className="compare-label">Ən baha</span>
+          <strong>{formatAzn(pair.priciest.priceAzn)}</strong>
+          <span className="compare-store">{storeName(pair.priciest)}</span>
+        </li>
+      </ul>
+      <p>
+        {pair.diffAzn === 0 ? (
+          "Qiymətlər eynidir."
+        ) : (
+          <>
+            Fərq: <strong>{formatAzn(pair.diffAzn)}</strong> ({pair.diffPct} %)
+          </>
+        )}
+      </p>
+      <p className="thin-meta">
+        Median üçün ən azı {MIN_SELLERS_FOR_STATS} satıcı lazımdır. Son yenilənmə: {formatDay(updatedAt)}
+      </p>
+    </div>
+  );
+}
+
+function Group({ group, sellerOffers }: { group: ProductResult["groups"][number]; sellerOffers: PublicOffer[] }) {
   const { authenticity, stats } = group;
+  const pair = stats.status === "insufficient" ? compareTwo(sellerOffers) : null;
   return (
     <section className={`group tone-${authenticity}`} aria-label={AUTHENTICITY_LABELS[authenticity]}>
       <h3 className="group-title">{AUTHENTICITY_LABELS[authenticity]}</h3>
@@ -51,6 +89,8 @@ function Group({ group }: { group: ProductResult["groups"][number] }) {
             </div>
           </dl>
         </>
+      ) : pair ? (
+        <Comparison pair={pair} updatedAt={stats.updatedAt} />
       ) : (
         <div className="thin">
           <p>
@@ -73,7 +113,11 @@ export function ProductSection({ product }: { product: ProductResult }) {
       <h2 className="product-name">{product.name}</h2>
       <div className="product-body">
         {product.groups.map((group) => (
-          <Group key={group.authenticity} group={group} />
+          <Group
+            key={group.authenticity}
+            group={group}
+            sellerOffers={product.sellerOffers.filter((o) => o.authenticity === group.authenticity)}
+          />
         ))}
         <OfferList offers={product.offers} truncated={product.offersTruncated} />
       </div>

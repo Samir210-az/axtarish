@@ -7,8 +7,17 @@ export const MIN_SELLERS_FOR_STATS = 3;
 export const MAX_QUERY_LENGTH = 80;
 export const MIN_QUERY_LENGTH = 2;
 
-export const MAX_CANDIDATE_PRODUCTS = 30;
+export const MAX_CANDIDATE_PRODUCTS = 150;
 export const MAX_RESULT_PRODUCTS = 12;
+export const MAX_SHOW = 60;
+
+export const SORT_KEYS = ["sellers", "price_asc", "price_desc", "discount"] as const;
+export type SortKey = (typeof SORT_KEYS)[number];
+export const DEFAULT_SORT: SortKey = "sellers";
+
+export function isSortKey(value: string): value is SortKey {
+  return (SORT_KEYS as readonly string[]).includes(value);
+}
 export const MAX_OFFERS_PER_QUERY = 1500;
 export const MAX_OFFERS_SHOWN_PER_PRODUCT = 50;
 
