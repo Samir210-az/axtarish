@@ -3,6 +3,7 @@ import { extractProduct } from "./jsonld";
 import { querySpec, textMatchesQuery } from "./match";
 import { extractArazProduct } from "./nextRsc";
 import { extractNopOldPrice } from "./nop";
+import { extractWooProduct } from "./woo";
 import type { Source } from "./sources";
 import type { SaveItem } from "./store";
 
@@ -19,7 +20,12 @@ export function evaluatePage(
   page: { url: string; body: string },
   query?: string,
 ): { outcome: PageOutcome; item?: SaveItem } {
-  const product = source.adapter === "araz-rsc" ? extractArazProduct(page.body, page.url) : extractProduct(page.body);
+  const product =
+    source.adapter === "araz-rsc"
+      ? extractArazProduct(page.body, page.url)
+      : source.adapter === "woo-html"
+        ? extractWooProduct(page.body)
+        : extractProduct(page.body);
   if (!product) return { outcome: "noData" };
   if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {
     const oldPrice = extractNopOldPrice(page.body);

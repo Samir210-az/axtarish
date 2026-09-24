@@ -70,8 +70,8 @@ describe("evaluatePage", () => {
 });
 
 describe("mənbə reyestri (kataloq)", () => {
-  it("almali kataloqdan çıxarılıb, bazarstore və arazmarket daxildir", () => {
-    expect(source("almali").catalog).toBe(false);
+  it("almali, bazarstore və arazmarket kataloqa daxildir", () => {
+    expect(source("almali").catalog).not.toBe(false);
     expect(source("bazarstore").catalog).not.toBe(false);
     expect(source("arazmarket").catalog).not.toBe(false);
   });

@@ -11,7 +11,7 @@ export interface Source {
   samples?: string[];
   note?: string;
   findings?: string;
-  adapter?: "generic-jsonld" | "araz-rsc";
+  adapter?: "generic-jsonld" | "araz-rsc" | "woo-html";
   catalog?: boolean;
   productUrlPattern?: string;
 }
@@ -82,12 +82,11 @@ export const SOURCES: Source[] = [
     kind: "retailer",
     categories: ["elektronika"],
     plan: "pilot",
-    adapter: "generic-jsonld",
-    catalog: false,
+    adapter: "woo-html",
     productUrlPattern: "/product/",
     samples: ["https://almali.az/product/iphone-15-128gb-black/"],
     findings:
-      "2026-09-23: HTTP 200, WooCommerce, məhsul səhifəsində JSON-LD Product var. robots /shop/ və add-to-cart-ı qadağan edir.",
+      "2026-09-24: WooCommerce (Woodmart). JSON-LD qiyməti USD yazır və HTML-dəki manat qiymətindən fərqlidir, ona görə qiymət məhsul başlığından (h1) sonrakı əsas qiymət blokundan oxunur (del = köhnə, ins = cari, AZN). Ad və sku JSON-LD-dən. Diqqət: bəzi məhsulların təsvirində kampaniya qiymətinin yalnız nağd ödəniş üçün keçərli olduğu, kartla rəsmi qiymətin tətbiq olunduğu yazılıb. robots /shop/ və add-to-cart-ı qadağan edir.",
   },
   {
     id: "breezy",
