@@ -39,6 +39,7 @@ export function toPublicOffer(offer: Offer): PublicOffer {
     authenticity: offer.authenticity,
     sourceType: offer.sourceType,
     effectiveAt: offer.effectiveAt.toISOString(),
+    cashOnly: offer.cashOnly === true,
   };
 }
 

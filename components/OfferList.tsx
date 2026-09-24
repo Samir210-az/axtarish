@@ -40,12 +40,7 @@ export function OfferList({ offers, truncated }: { offers: PublicOffer[]; trunca
 
       <div className="offers-sort" role="group" aria-label="Sıralama">
         {SORTS.map((option) => (
-          <button
-            key={option.key}
-            type="button"
-            aria-pressed={sort === option.key}
-            onClick={() => setSort(option.key)}
-          >
+          <button key={option.key} type="button" aria-pressed={sort === option.key} onClick={() => setSort(option.key)}>
             {option.label}
           </button>
         ))}
@@ -59,6 +54,7 @@ export function OfferList({ offers, truncated }: { offers: PublicOffer[]; trunca
               <small>
                 {SOURCE_LABELS[offer.sourceType]}, {AUTHENTICITY_LABELS[offer.authenticity].toLowerCase()}
               </small>
+              {offer.cashOnly && <em className="tag-cash">nağd ödəniş üçün</em>}
             </span>
             <span className="offer-price">
               <strong>{formatAzn(offer.priceAzn)}</strong>

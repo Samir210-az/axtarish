@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { OfferList } from "@/components/OfferList";
 import { ProductSection } from "@/components/ProductSection";
 import { SortBar } from "@/components/SortBar";
 import { statsByAuthenticity } from "@/lib/stats";
@@ -60,5 +61,26 @@ describe("SortBar", () => {
       expect(html).toContain(label);
     expect(html.match(/aria-current="true"/g)).toHaveLength(1);
     expect(html).toMatch(/<a[^>]*aria-current="true"[^>]*>Ucuzdan bahaya<\/a>/);
+  });
+});
+
+describe("nağd ödəniş nişanı", () => {
+  it("yalnız cashOnly qiymətdə nişan göstərir", () => {
+    const cash = { ...toPublicOffer(offer({ priceAzn: 2, sellerName: "Almalı" })), cashOnly: true };
+    const plain = toPublicOffer(offer({ priceAzn: 3, sellerName: "Bazarstore" }));
+    const html = renderToStaticMarkup(<OfferList offers={[cash, plain]} truncated={false} />);
+    expect(html.match(/nağd ödəniş üçün/g)).toHaveLength(1);
+  });
+
+  it("2 mağaza müqayisəsində nağd qeydini göstərir", () => {
+    const product = resultWith([3.25, 3.1]);
+    const marked = {
+      ...product,
+      sellerOffers: product.sellerOffers.map((o, i) => (i === 0 ? { ...o, cashOnly: true } : o)),
+    };
+    const html = renderToStaticMarkup(<ProductSection product={marked} />);
+    expect(html).toContain("(nağd)");
+    expect(html).toContain("yalnız nağd ödəniş üçün keçərlidir");
+    expect(renderToStaticMarkup(<ProductSection product={resultWith([3.25, 3.1])} />)).not.toContain("(nağd)");
   });
 });

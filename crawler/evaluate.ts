@@ -52,6 +52,7 @@ export function evaluatePage(
       sourceId: source.id,
       sourceName: source.name,
       sourceType: source.kind === "marketplace" ? "marketplace" : "online_store",
+      cashOnly: product.cashOnly === true,
     },
   };
 }

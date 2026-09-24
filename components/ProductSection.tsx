@@ -12,7 +12,7 @@ function sourceSummary(mix: GroupStats["sourceMix"]): string {
 }
 
 function storeName(offer: PublicOffer): string {
-  return offer.seller ?? "Fərdi satıcı";
+  return `${offer.seller ?? "Fərdi satıcı"}${offer.cashOnly ? " (nağd)" : ""}`;
 }
 
 function Comparison({ pair, updatedAt }: { pair: NonNullable<ReturnType<typeof compareTwo>>; updatedAt: string }) {
@@ -40,6 +40,9 @@ function Comparison({ pair, updatedAt }: { pair: NonNullable<ReturnType<typeof c
           </>
         )}
       </p>
+      {(pair.cheapest.cashOnly || pair.priciest.cashOnly) && (
+        <p className="thin-meta">(nağd) işarəli qiymət yalnız nağd ödəniş üçün keçərlidir.</p>
+      )}
       <p className="thin-meta">
         Median üçün ən azı {MIN_SELLERS_FOR_STATS} satıcı lazımdır. Son yenilənmə: {formatDay(updatedAt)}
       </p>

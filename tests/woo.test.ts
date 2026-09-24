@@ -12,9 +12,12 @@ const REGULAR = `<p class="price">${amount("799.0")}</p>`;
 const RANGE = `<p class="price">${amount("100.0")} – ${amount("200.0")}</p>`;
 const RELATED = `<div class="wd-carousel-item"><div class="wd-product product type-product post-134503 status-publish outofstock"><h3><a href="/product/x/">Apple iPhone 14 Pro</a></h3><span class="price"><del>${amount("975.0")}</del><ins>${amount("799.0")}</ins></span></div></div>`;
 
-const LD = (availability: string): string =>
+const CASH_NOTE =
+  "Kampaniya qiyməti yalnız nağd ödəniş üçün keçərlidir. Kartla ödənişdə rəsmi satış qiyməti tətbiq olunur.";
+
+const LD = (availability: string, description = ""): string =>
   '<script type="application/ld+json">{"@context":"https://schema.org/","@graph":[{"@type":"BreadcrumbList"},' +
-  '{"@type":"Product","name":"CHRISTIAN DIOR SAUVAGE (M) EDP 100ML","sku":131136,"offers":[{"@type":"Offer",' +
+  `{"@type":"Product","name":"CHRISTIAN DIOR SAUVAGE (M) EDP 100ML","sku":131136,"description":${JSON.stringify(description)},"offers":[{"@type":"Offer",` +
   '"priceSpecification":[{"@type":"UnitPriceSpecification","price":"186.5","priceCurrency":"USD"}],' +
   `"availability":"https://schema.org/${availability}"}]}]}</script>`;
 
@@ -22,10 +25,12 @@ function page(
   priceBlock: string,
   availability = "InStock",
   containerClass = "product type-product post-131136 instock",
+  description = "",
+  afterPrice = "",
 ): string {
-  return `<html><body class="single-product">${availability ? LD(availability) : ""}<div class="sticky"><span class="price">${amount("1.0")}</span></div>
+  return `<html><body class="single-product">${availability ? LD(availability, description) : ""}<div class="sticky"><span class="price">${amount("1.0")}</span></div>
     <div id="product-131136" class="${containerClass}">
-    <h1 class="product_title entry-title wd-entities-title"> CHRISTIAN DIOR SAUVAGE (M) EDP 100ML </h1>${priceBlock}</div>${RELATED}</body></html>`;
+    <h1 class="product_title entry-title wd-entities-title"> CHRISTIAN DIOR SAUVAGE (M) EDP 100ML </h1>${priceBlock}${afterPrice}</div>${RELATED}</body></html>`;
 }
 
 describe("extractWooProduct", () => {
@@ -64,6 +69,37 @@ describe("extractWooProduct", () => {
 
   it("nə JSON-LD, nə də sinif varsa naməlum saxlayır", () => {
     expect(extractWooProduct(page(SALE, "", "product type-product"))?.availability).toBe("unknown");
+  });
+});
+
+describe("nağd ödəniş qeydi", () => {
+  it("JSON-LD təsvirində kampaniya qiymətinin yalnız nağd olduğu yazılıbsa cashOnly true olur", () => {
+    expect(extractWooProduct(page(SALE, "InStock", undefined, CASH_NOTE))?.cashOnly).toBe(true);
+  });
+
+  it("qeyd səhifədə qiymətin yanında yazılıbsa (JSON-LD təsviri yoxdursa) da aşkarlanır", () => {
+    const note = `<div class="woocommerce-product-details__short-description"><p>${CASH_NOTE}</p></div>`;
+    expect(extractWooProduct(page(SALE, "InStock", undefined, "", note))?.cashOnly).toBe(true);
+  });
+
+  it("qeyd yoxdursa cashOnly false qalır", () => {
+    expect(extractWooProduct(page(SALE))?.cashOnly).toBe(false);
+  });
+
+  it("məhsulun qısa təsvirindən çox aşağıdakı mətn nəzərə alınmır", () => {
+    const far = `<div>${"x ".repeat(2000)}</div><p>${CASH_NOTE}</p>`;
+    expect(extractWooProduct(page(SALE, "InStock", undefined, "", far))?.cashOnly).toBe(false);
+  });
+
+  it("oxunan qeyd təklifə çevrilir", () => {
+    const source = SOURCES.find((s) => s.id === "almali");
+    if (!source) throw new Error("almali yoxdur");
+    const withNote = evaluatePage(source, {
+      url: "https://almali.az/product/x/",
+      body: page(SALE, "InStock", undefined, CASH_NOTE),
+    });
+    expect(withNote.item?.cashOnly).toBe(true);
+    expect(evaluatePage(source, { url: "https://almali.az/product/x/", body: page(SALE) }).item?.cashOnly).toBe(false);
   });
 });
 

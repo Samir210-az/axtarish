@@ -15,6 +15,7 @@ export interface SaveItem {
   sourceId: string;
   sourceName: string;
   sourceType: SourceType;
+  cashOnly?: boolean;
 }
 
 export interface SaveSummary {
@@ -168,7 +169,8 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
         now.toMillis() - checkedAt < RECHECK_SKIP_MS &&
         (snap.get("status") ?? "active") === "active" &&
         snap.get("productId") === productId &&
-        (snap.get("oldPriceAzn") ?? null) === item.oldPriceAzn;
+        (snap.get("oldPriceAzn") ?? null) === item.oldPriceAzn &&
+        (snap.get("cashOnly") ?? false) === (item.cashOnly === true);
       if (recentlyVerified) {
         summary.offersSkipped += 1;
         return;
@@ -190,6 +192,7 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
           effectiveAt: now,
           priceChangedAt: changed ? now : (snap.get("priceChangedAt") ?? snap.get("firstSeenAt") ?? now),
           status: "active",
+          cashOnly: item.cashOnly === true,
           firstSeenAt: snap.exists ? (snap.get("firstSeenAt") ?? now) : now,
         },
         { merge: true },

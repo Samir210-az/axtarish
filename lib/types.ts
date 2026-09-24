@@ -34,6 +34,7 @@ export interface Offer {
   sellerName: string | null;
   sellerUrl: string | null;
   effectiveAt: Date;
+  cashOnly?: boolean;
 }
 
 export type SourceMix = Partial<Record<SourceType, number>>;
@@ -68,6 +69,7 @@ export interface PublicOffer {
   authenticity: Authenticity;
   sourceType: SourceType;
   effectiveAt: string;
+  cashOnly: boolean;
 }
 
 export interface ProductResult {

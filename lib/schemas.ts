@@ -28,4 +28,5 @@ export const offerDocSchema = z.object({
   sellerUrl: z.string().nullable().default(null),
   effectiveAt: timestampLike,
   status: z.enum(["active", "gone", "out_of_stock"]).default("active"),
+  cashOnly: z.boolean().default(false),
 });

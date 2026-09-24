@@ -124,7 +124,7 @@ async function processSource(
   for (const item of items.slice(0, 6)) {
     const i = item.identity;
     lines.push(
-      `- ${i.displayName} | açar=${i.matchKey} | ${item.priceAzn} ₼${item.oldPriceAzn ? ` (köhnə ${item.oldPriceAzn})` : ""} | ${i.category} | ${i.authenticity}`,
+      `- ${i.displayName} | açar=${i.matchKey} | ${item.priceAzn} ₼${item.oldPriceAzn ? ` (köhnə ${item.oldPriceAzn})` : ""} | ${i.category} | ${i.authenticity}${item.cashOnly ? " | nağd" : ""}`,
     );
   }
   return { items, lines };

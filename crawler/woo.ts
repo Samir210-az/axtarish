@@ -1,5 +1,6 @@
 import { decodeEntities, parsePrice, type ExtractedProduct } from "./jsonld";
 
+const CASH_ONLY = /kampaniya[^.<]{0,140}nağd/i;
 const TITLE = /<h1[^>]*class="[^"]*product_title[^"]*"[^>]*>([\s\S]*?)<\/h1>/i;
 const AMOUNT = /<bdi>\s*([\d.,]+)(?:&nbsp;|\s|\u00a0)*<span[^>]*>\s*(?:AZN|₼)\s*<\/span>/gi;
 
@@ -70,6 +71,8 @@ export function extractWooProduct(html: string): ExtractedProduct | null {
     .replace(/\s+/g, " ")
     .trim();
   if (!name) return null;
+  const description = typeof node?.description === "string" ? node.description : "";
+  const cashOnly = CASH_ONLY.test(decodeEntities(`${description} ${after.slice(0, 3000)}`));
   const sku = node?.sku === undefined || node.sku === null || node.sku === "" ? null : String(node.sku);
 
   return {
@@ -81,5 +84,6 @@ export function extractWooProduct(html: string): ExtractedProduct | null {
     oldPriceAzn: old !== null && old > current ? old : null,
     availability: availabilityOf(html, node),
     origin: "woo",
+    cashOnly,
   };
 }
