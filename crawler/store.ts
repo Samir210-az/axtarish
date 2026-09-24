@@ -16,6 +16,8 @@ export interface SaveItem {
   sourceName: string;
   sourceType: SourceType;
   cashOnly?: boolean;
+  sellerType?: "store" | "individual";
+  sellerKey?: string;
 }
 
 export interface SaveSummary {
@@ -170,7 +172,8 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
         (snap.get("status") ?? "active") === "active" &&
         snap.get("productId") === productId &&
         (snap.get("oldPriceAzn") ?? null) === item.oldPriceAzn &&
-        (snap.get("cashOnly") ?? false) === (item.cashOnly === true);
+        (snap.get("cashOnly") ?? false) === (item.cashOnly === true) &&
+        snap.get("sellerKey") === (item.sellerKey ?? `store:${item.sourceId}`);
       if (recentlyVerified) {
         summary.offersSkipped += 1;
         return;
@@ -184,9 +187,9 @@ export async function saveItems(items: SaveItem[]): Promise<SaveSummary> {
           oldPriceAzn: item.oldPriceAzn,
           authenticity: item.identity.authenticity,
           sourceType: item.sourceType,
-          sellerType: "store",
-          sellerKey: `store:${item.sourceId}`,
-          sellerName: item.sourceName,
+          sellerType: item.sellerType ?? "store",
+          sellerKey: item.sellerKey ?? `store:${item.sourceId}`,
+          sellerName: item.sellerType === "individual" ? null : item.sourceName,
           sellerUrl: item.pageUrl,
           sourceId: item.sourceId,
           effectiveAt: now,

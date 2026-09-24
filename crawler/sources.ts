@@ -11,7 +11,7 @@ export interface Source {
   samples?: string[];
   note?: string;
   findings?: string;
-  adapter?: "generic-jsonld" | "araz-rsc" | "woo-html";
+  adapter?: "generic-jsonld" | "araz-rsc" | "woo-html" | "tapal-title";
   catalog?: boolean;
   productUrlPattern?: string;
 }
@@ -246,5 +246,18 @@ export const SOURCES: Source[] = [
     categories: ["ərzaq", "aptek", "kosmetika"],
     plan: "excluded",
     note: "Restoran, market və apteklərin qiymətləri var. Xarici platformadır, istifadə şərtləri yoxlanmadan toxunulmur.",
+  },
+  {
+    id: "tapal",
+    name: "Tapal",
+    url: "https://tapal.az/",
+    kind: "marketplace",
+    categories: ["elanlar"],
+    plan: "pilot",
+    adapter: "tapal-title",
+    productUrlPattern: "/elan/",
+    samples: ["https://tapal.az/elan/249-epson-m3170-mono-printer"],
+    findings:
+      "2026-09-24: elan saytı, ~1 657 elan (sitemap-ads). robots.txt sərbəstdir (axtaris?, api, admin qadağan). JSON-LD-də qiymət 0.00 və şərt hər elanda UsedCondition yazılıb (etibarsız), ona görə qiymət və şəhər başlıqdan oxunur: 'Ad - 750 AZN | Bakı - TapAl.az'. Razılaşma ilə qiymətsiz elanlar atılır. Hər elan ayrıca fərdi satıcı sayılır (sellerKey = ad:hash, eyni ad+qiymət+şəhər birləşir). Satıcı adı, telefon və link saxlanmır/göstərilmir.",
   },
 ];

@@ -3,6 +3,8 @@ import { extractProduct } from "./jsonld";
 import { querySpec, textMatchesQuery } from "./match";
 import { extractArazProduct } from "./nextRsc";
 import { extractNopOldPrice } from "./nop";
+import { adSellerKey } from "./sellers";
+import { extractTapalAd } from "./tapal";
 import { extractWooProduct } from "./woo";
 import type { Source } from "./sources";
 import type { SaveItem } from "./store";
@@ -25,7 +27,9 @@ export function evaluatePage(
       ? extractArazProduct(page.body, page.url)
       : source.adapter === "woo-html"
         ? extractWooProduct(page.body)
-        : extractProduct(page.body);
+        : source.adapter === "tapal-title"
+          ? extractTapalAd(page.body, page.url)
+          : extractProduct(page.body);
   if (!product) return { outcome: "noData" };
   if (source.adapter === "generic-jsonld" && product.oldPriceAzn === null) {
     const oldPrice = extractNopOldPrice(page.body);
@@ -53,6 +57,12 @@ export function evaluatePage(
       sourceName: source.name,
       sourceType: source.kind === "marketplace" ? "marketplace" : "online_store",
       cashOnly: product.cashOnly === true,
+      ...(source.kind === "marketplace"
+        ? {
+            sellerType: "individual" as const,
+            sellerKey: adSellerKey(source.id, product.name, product.priceAzn, product.city ?? null),
+          }
+        : {}),
     },
   };
 }

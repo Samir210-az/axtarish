@@ -6,8 +6,9 @@ export interface ExtractedProduct {
   priceAzn: number;
   oldPriceAzn: number | null;
   availability: "in_stock" | "out_of_stock" | "unknown";
-  origin: "jsonld" | "og" | "next" | "woo";
+  origin: "jsonld" | "og" | "next" | "woo" | "title";
   cashOnly?: boolean;
+  city?: string | null;
 }
 
 type Json = Record<string, unknown>;
