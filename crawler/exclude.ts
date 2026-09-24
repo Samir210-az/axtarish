@@ -1,8 +1,24 @@
 import { tokensOf } from "../lib/normalize";
 
-// Nəqliyyat və daşınmaz əmlak: bu sahələrin elanları nə oxunur, nə də saxlanılır.
-// Kateqoriya sətirləri (URL yolunda tam uyğunluq). Yeni mənbə qoşulanda real ünvanlara baxıb yoxlanmalıdır.
+// Nəqliyyat, daşınmaz əmlak və məhsul olmayan sahələr (iş, xidmət, heyvan, nömrə): bu sahələrin elanları
+// nə oxunur, nə də saxlanılır. Kateqoriya sətirləri URL yolunda tam uyğunluqla yoxlanır.
+// Tap.az ünvanı: /elanlar/{kateqoriya}/{alt-kateqoriya}/{nömrə} (real siyahı 2026-09-24 sitemap-ından).
 const EXCLUDED_SEGMENTS = new Set([
+  // Tap.az 1-ci səviyyə
+  "is-elanlari",
+  "xidmetler",
+  "heyvanlar",
+  // Tap.az alt-kateqoriya: telefon nömrələri və sim kartlar
+  "nomreler-ve-sim-kartlar",
+  // digər saytlarda rast gəlinən adlar
+  "ustalar",
+  "ustalar-ve-temir",
+  "hazirliq-kurslari",
+  "cv-ler",
+  "turlar",
+  "itmis-esyalar",
+  "torpaq-sahesi",
+  "ehtiyyat-hisseleri-ve-aksesuarlar",
   "neqliyyat",
   "avtomobiller",
   "masinlar",

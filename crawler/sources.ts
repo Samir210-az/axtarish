@@ -260,4 +260,14 @@ export const SOURCES: Source[] = [
     findings:
       "2026-09-24: elan saytı, ~1 657 elan (sitemap-ads). robots.txt sərbəstdir (axtaris?, api, admin qadağan). JSON-LD-də qiymət 0.00 və şərt hər elanda UsedCondition yazılıb (etibarsız), ona görə qiymət və şəhər başlıqdan oxunur: 'Ad - 750 AZN | Bakı - TapAl.az'. Razılaşma ilə qiymətsiz elanlar atılır. Hər elan ayrıca fərdi satıcı sayılır (sellerKey = ad:hash, eyni ad+qiymət+şəhər birləşir). Satıcı adı, telefon və link saxlanmır/göstərilmir.",
   },
+  {
+    id: "tap",
+    name: "Tap.az",
+    url: "https://tap.az/",
+    kind: "marketplace",
+    categories: ["elanlar"],
+    plan: "candidate",
+    findings:
+      "2026-09-24: robots.txt elan səhifələrinə icazə verir (auth, bookmarks, pages/rules, pages/advertising və adında 'new' olan yollar qadağan, botlara gecikmə tələbi yoxdur). İstifadəçi qaydalar səhifəsində skript qadağası tapmadı (mən oxuya bilmirəm). GitHub (ABŞ) IP-sinə yoxlama çıxır, Azərbaycan IP-sindən açılır: yalnız Azərbaycandakı maşından oxunmalıdır. Sitemap: 61 alt-fayl (tap.azstatic.com), hər biri ən azı 16 000 ünvan. Ünvan quruluşu /elanlar/{kateqoriya}/{alt-kateqoriya}/{nömrə}, ad ünvanda yoxdur. Qadağan kateqoriyalar exclude.ts-dədir (nəqliyyat, daşınmaz əmlak, iş, xidmət, heyvan, nömrələr). Adapter hələ yazılmayıb, elan səhifəsinin quruluşu Azərbaycan IP-sindən görülməlidir.",
+  },
 ];

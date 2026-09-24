@@ -73,6 +73,36 @@ describe("isExcludedUrl və shouldSkipUrl: səhifə oxunmadan", () => {
   });
 });
 
+describe("Tap.az real ünvanları (2026-09-24 sitemap-ı)", () => {
+  const base = "https://tap.az/elanlar";
+
+  it.each([
+    `${base}/neqliyyat/ehtiyyat-hisseleri-ve-aksesuarlar/24424843`,
+    `${base}/dasinmaz-emlak/menziller/47765249`,
+    `${base}/dasinmaz-emlak/torpaq-sahesi/47772360`,
+    `${base}/dasinmaz-emlak/heyet-evleri/48757883`,
+    `${base}/heyvanlar/itler/47779290`,
+    `${base}/heyvanlar/quslar/47782719`,
+    `${base}/elektronika/nomreler-ve-sim-kartlar/48747702`,
+    `${base}/is-elanlari/satis/12345678`,
+    `${base}/xidmetler/temir-ve-tikinti/12345678`,
+  ])("oxunmur: %s", (url) => {
+    expect(shouldSkipUrl(url)).toBe(true);
+  });
+
+  it.each([
+    `${base}/elektronika/oyunlar-ve-programlar/18497740`,
+    `${base}/elektronika/telefonlar/43510339`,
+    `${base}/ev-ve-bag-ucun/meiset-texnikasi/28352690`,
+    `${base}/hobbi-ve-asude/velosipedler/47775761`,
+    `${base}/hobbi-ve-asude/idman-ve-asude/32942687`,
+    `${base}/sexsi-esyalar/geyim-ayaqqabilar/48761395`,
+    `${base}/usaqlar-ucun/usaq-mebeli/12345678`,
+  ])("oxunur: %s", (url) => {
+    expect(shouldSkipUrl(url)).toBe(false);
+  });
+});
+
 describe("saxlama qarşısında son qoruma və səhifə səviyyəsi", () => {
   const item = (displayName: string) => ({ identity: { displayName } });
 
