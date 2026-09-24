@@ -1,0 +1,43 @@
+name: Reconcile products
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "Yalnız plan (true/false)"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run reconcile
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          INPUT_DRY: ${{ github.event.inputs.dry }}
+        run: |
+          set --
+          if [ "$INPUT_DRY" != "false" ]; then set -- --dry; fi
+          npx tsx crawler/reconcile.ts "$@" | tee reconcile-output.md
+      - name: Publish output
+        if: always()
+        run: |
+          git config user.name "reconcile-bot"
+          git config user.email "reconcile-bot@users.noreply.github.com"
+          git checkout --orphan reconcile-results
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          echo '{"git":{"deploymentEnabled":false},"ignoreCommand":"exit 0"}' > vercel.json
+          git add -f reconcile-output.md vercel.json
+          git commit -m "reconcile output"
+          git push -f origin reconcile-results

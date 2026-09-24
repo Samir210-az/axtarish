@@ -6,6 +6,7 @@ import { decodeEntities, type ExtractedProduct } from "./jsonld";
 export interface Identity {
   productId: string;
   matchKey: string;
+  nameKey: string | null;
   displayName: string;
   brand: string;
   model: string;
@@ -158,6 +159,10 @@ export function identify(product: ExtractedProduct, options: IdentifyOptions = {
   const modelTokens = parsed.tokens.filter((t) => !brandTokens.includes(t) && !NOISE.has(t) && !COLORS.has(t));
   if (keyTokens.length === 0 && !product.gtin) return null;
 
+  const nameTokens = [...new Set(parsed.tokens)].filter((token) => !NOISE.has(token) && !COLORS.has(token));
+  const nameKey =
+    nameTokens.length >= 2 ? `${[...nameTokens].sort().join("-")}|${parsed.variant ?? "-"}|${size?.key ?? "-"}` : null;
+
   const matchKey = product.gtin
     ? `gtin:${product.gtin}`
     : `${[...keyTokens].sort().join("-")}|${parsed.variant ?? "-"}|${size?.key ?? "-"}`;
@@ -165,6 +170,7 @@ export function identify(product: ExtractedProduct, options: IdentifyOptions = {
   return {
     productId: `p${createHash("sha1").update(matchKey).digest("hex").slice(0, 20)}`,
     matchKey,
+    nameKey,
     displayName,
     brand: brand || (keyTokens[0] ?? ""),
     model: modelTokens.join(" "),
