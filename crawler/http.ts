@@ -3,6 +3,7 @@ import { isAllowed, parseRobots, parseSitemaps, type RobotsRules } from "./robot
 export const USER_AGENT = "Mozilla/5.0 (compatible; AxtarishBot/0.1; +https://axtarish-az.vercel.app; price research)";
 
 const MIN_DELAY_MS = 2500;
+const RETRY_DELAY_MS = 3000;
 const MAX_BODY_CHARS = 3_000_000;
 const CHALLENGE = /just a moment|cf-chl|attention required|enable javascript and cookies/i;
 
@@ -49,18 +50,25 @@ export class PoliteFetcher {
     return Math.max(MIN_DELAY_MS, (state.rules.crawlDelaySec ?? 0) * 1000);
   }
 
-  private async request(url: string): Promise<{ status: number; body: string; finalUrl: string }> {
-    const response = await this.fetchImpl(url, {
-      headers: {
-        "User-Agent": this.userAgent,
-        Accept: "text/html,application/xml;q=0.9,*/*;q=0.5",
-        "Accept-Language": "az,en;q=0.7",
-      },
-      redirect: "follow",
-      signal: AbortSignal.timeout(20_000),
-    });
-    const text = await response.text();
-    return { status: response.status, body: text.slice(0, MAX_BODY_CHARS), finalUrl: response.url || url };
+  private async request(url: string, attempts = 2): Promise<{ status: number; body: string; finalUrl: string }> {
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        const response = await this.fetchImpl(url, {
+          headers: {
+            "User-Agent": this.userAgent,
+            Accept: "text/html,application/xml;q=0.9,*/*;q=0.5",
+            "Accept-Language": "az,en;q=0.7",
+          },
+          redirect: "follow",
+          signal: AbortSignal.timeout(20_000),
+        });
+        const text = await response.text();
+        return { status: response.status, body: text.slice(0, MAX_BODY_CHARS), finalUrl: response.url || url };
+      } catch (error) {
+        if (attempt >= attempts) throw error;
+        await this.sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
   }
 
   private async loadHost(origin: string): Promise<HostState> {
@@ -77,7 +85,7 @@ export class PoliteFetcher {
     this.hosts.set(origin, state);
 
     try {
-      const { status, body } = await this.request(`${origin}/robots.txt`);
+      const { status, body } = await this.request(`${origin}/robots.txt`, 3);
       const looksLikeRobots = /user-agent|disallow|sitemap/i.test(body) && !/<html/i.test(body.slice(0, 300));
       if (isBlockResponse(status, body)) {
         state.state = "blocked";
