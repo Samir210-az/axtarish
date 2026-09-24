@@ -24,6 +24,11 @@ describe("isExcludedText: maşın və əmlak atılır", () => {
     "Obyekt satılır",
     "Əmlak xidməti",
     "Yeni tikili 3 otaq",
+    "Sürücü tələb olunur",
+    "Operator xanımlar tələb olunur!",
+    "Resepşn tələb olunur",
+    "İcarəyə kiosk(köşk)",
+    "Vakansiya: satış meneceri",
   ])("atılır: %s", (title) => {
     expect(isExcludedText(title)).toBe(true);
   });
@@ -45,6 +50,9 @@ describe("isExcludedText: maşın və əmlak atılır", () => {
     "Dior Sauvage EDP 100 ml",
     "ABC KREM AMONYAKLI 500 ML",
     "Sabun Palmolive",
+    "Sudluk soyuducu",
+    "Kiosk üçün kassa aparatı",
+    "iPhone 15 Pro Max 256GB",
   ])("saxlanılır: %s", (title) => {
     expect(isExcludedText(title)).toBe(false);
   });

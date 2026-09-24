@@ -73,7 +73,7 @@ async function main() {
     console.log(`  ${names.get(id)} | ${offer?.source} | ${offer?.price}`);
   }
   const urlOnly = excludedOffers.filter((o) => !excludedProducts.has(o.productId));
-  if (urlOnly.length > 0) console.log(`yalnız ünvana görə (adı normal): ${urlOnly.length} offer`);
+  if (urlOnly.length > 0) console.log(`digər səbəb (ünvan və ya ümumi ad): ${urlOnly.length} offer`);
 
   const ops: ((batch: WriteBatch) => void)[] = excludedOffers.map((o) => (batch) => batch.delete(o.ref));
   let historyDeleted = 0;

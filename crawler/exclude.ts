@@ -46,7 +46,8 @@ const EXCLUDED_SEGMENTS = new Set([
 
 const REAL_ESTATE: RegExp[] = [
   /\b(menzil|villa|heyet evi|bag evi|ev|obyekt|ofis|magaza|dukan|qaraj|kupca|otaq|torpaq)\s+(satilir|satis|satisi|kiraye|icare|icareye|verilir)\b/,
-  /\b(kiraye|icareye)\s+(menzil|ev|otaq|obyekt|ofis|magaza|dukan|qaraj|villa|torpaq)\b/,
+  /\b(kiraye|icareye)\s+(menzil|ev|otaq|obyekt|ofis|magaza|dukan|qaraj|villa|torpaq|kiosk|kosk)\b/,
+  /\b(teleb olunur|is elani|vakansiya|isci teleb)\b/,
   /\b\d+\s*otaqli\b/,
   /\botaqli\s+(menzil|ev)\b/,
   /\b(yeni|kohne)\s+tikili\b/,
