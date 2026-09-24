@@ -70,7 +70,10 @@ describe("PoliteFetcher canlı proqres (CRAWL_VERBOSE)", () => {
     console.error = spy as typeof console.error;
     const previous = process.env.CRAWL_VERBOSE;
     try {
-      const { fetcher } = flaky({}, { "https://a.az/robots.txt": "User-agent: *\n", "https://a.az/p/1": "salam" });
+      const { fetcher } = flaky(
+        {},
+        { "https://a.az/robots.txt": "User-agent: *\n", "https://a.az/p/1?token=gizli": "salam" },
+      );
       delete process.env.CRAWL_VERBOSE;
       await fetcher.get("https://a.az/p/1?token=gizli");
       expect(lines).toHaveLength(0);
