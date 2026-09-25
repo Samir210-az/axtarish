@@ -1,24 +1,26 @@
 :root {
-  --bg: #1a0609;
-  --glass: rgba(255, 226, 170, 0.05);
-  --glass-strong: rgba(255, 226, 170, 0.09);
-  --well: rgba(18, 4, 7, 0.62);
-  --edge: rgba(232, 185, 92, 0.2);
-  --edge-strong: rgba(232, 185, 92, 0.4);
-  --text: #f6ead2;
-  --muted: #cbb690;
-  --faint: #a89572;
-  --gold: #e8b95c;
-  --gold-hi: #fbe3a3;
-  --gold-lo: #a46b1c;
+  --bg: #0a1230;
+  --bg-rgb: 10, 18, 48;
+  --glass: rgba(170, 200, 255, 0.05);
+  --glass-strong: rgba(170, 200, 255, 0.09);
+  --well: rgba(6, 12, 31, 0.62);
+  --edge: rgba(var(--accent-rgb), 0.22);
+  --edge-strong: rgba(var(--accent-rgb), 0.42);
+  --text: #eaf1ff;
+  --muted: #a3b7de;
+  --faint: #7488ae;
+  --accent: #2f6bff;
+  --accent-rgb: 47, 107, 255;
+  --accent-hi: #7fb3ff;
+  --accent-lo: #123a9e;
   --teal: #63c7b9;
-  --slate: #b9aa96;
-  --danger: #f0705c;
+  --slate: #93a4c2;
+  --danger: #ff6b57;
   --serif: "Playfair Display Variable", Georgia, "Times New Roman", serif;
   --radius-lg: 22px;
   --radius-md: 14px;
   --radius-sm: 10px;
-  --lift: inset 0 1px 0 rgba(255, 226, 170, 0.1), 0 30px 50px -30px rgba(0, 0, 0, 0.8);
+  --lift: inset 0 1px 0 rgba(170, 200, 255, 0.12), 0 30px 50px -30px rgba(0, 0, 0, 0.8);
   color-scheme: dark;
 }
 
@@ -45,16 +47,16 @@ body {
 }
 
 ::selection {
-  background: rgba(232, 185, 92, 0.35);
+  background: rgba(var(--accent-rgb), 0.35);
 }
 
 a {
-  color: var(--gold);
+  color: var(--accent);
   text-underline-offset: 0.2em;
 }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -76,10 +78,10 @@ a {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(62rem 30rem at 50% -14%, rgba(255, 205, 120, 0.3), transparent 62%),
-    radial-gradient(42rem 28rem at 6% 34%, rgba(122, 22, 32, 0.5), transparent 66%),
-    radial-gradient(42rem 28rem at 96% 62%, rgba(122, 22, 32, 0.38), transparent 66%),
-    linear-gradient(180deg, #2a0b10 0%, #1a0609 46%, #12040a 100%);
+    radial-gradient(62rem 30rem at 50% -14%, rgba(var(--accent-rgb), 0.32), transparent 62%),
+    radial-gradient(42rem 28rem at 6% 34%, rgba(30, 58, 138, 0.5), transparent 66%),
+    radial-gradient(42rem 28rem at 96% 62%, rgba(30, 58, 138, 0.38), transparent 66%),
+    linear-gradient(180deg, #101c44 0%, #0a1230 46%, #060c1f 100%);
 }
 
 .backdrop::before {
@@ -89,13 +91,13 @@ a {
   background: conic-gradient(
     from 152deg at 50% -6%,
     transparent 0deg,
-    rgba(255, 214, 140, 0.1) 7deg,
+    rgba(127, 179, 255, 0.1) 7deg,
     transparent 15deg,
-    rgba(255, 214, 140, 0.06) 24deg,
+    rgba(127, 179, 255, 0.06) 24deg,
     transparent 33deg,
-    rgba(255, 214, 140, 0.1) 44deg,
+    rgba(127, 179, 255, 0.1) 44deg,
     transparent 53deg,
-    rgba(255, 214, 140, 0.06) 62deg,
+    rgba(127, 179, 255, 0.06) 62deg,
     transparent 72deg
   );
   mask-image: linear-gradient(180deg, #000, transparent 72%);
@@ -108,7 +110,7 @@ a {
   background: repeating-radial-gradient(
     circle at 50% 42rem,
     transparent 0 5rem,
-    rgba(232, 185, 92, 0.08) 5rem calc(5rem + 1px)
+    rgba(var(--accent-rgb), 0.08) 5rem calc(5rem + 1px)
   );
   mask-image: radial-gradient(ellipse 70% 60% at 50% 60%, #000, transparent 75%);
 }
@@ -118,7 +120,7 @@ a {
   top: 0;
   z-index: 10;
   border-bottom: 1px solid var(--edge);
-  background: rgba(26, 6, 9, 0.94);
+  background: rgba(var(--bg-rgb), 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -136,7 +138,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-family: var(--serif);
   font-size: 1.25rem;
   font-weight: 700;
@@ -148,18 +150,18 @@ a {
   position: relative;
   width: 1.5rem;
   height: 1.5rem;
-  border: 1.5px solid var(--gold);
+  border: 1.5px solid var(--accent);
   border-radius: 50%;
   box-shadow:
-    0 0 18px rgba(232, 185, 92, 0.45),
-    inset 0 0 8px rgba(232, 185, 92, 0.25);
+    0 0 18px rgba(var(--accent-rgb), 0.45),
+    inset 0 0 8px rgba(var(--accent-rgb), 0.25);
 }
 
 .mark::after {
   content: "";
   position: absolute;
   inset: 0.34rem;
-  background: linear-gradient(140deg, var(--gold-hi), var(--gold-lo));
+  background: linear-gradient(140deg, var(--accent-hi), var(--accent-lo));
   transform: rotate(45deg);
 }
 
@@ -185,7 +187,7 @@ main {
 .ask h1 {
   max-width: 18ch;
   margin: 0 auto;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-family: var(--serif);
   font-size: clamp(2.1rem, 7vw, 3.9rem);
   font-weight: 800;
@@ -196,11 +198,11 @@ main {
 
 @supports (-webkit-background-clip: text) or (background-clip: text) {
   .ask h1 {
-    background: linear-gradient(180deg, #fff0c4 0%, #f0c56a 48%, #b97b21 100%);
+    background: linear-gradient(180deg, #eaf3ff 0%, #7fb3ff 48%, #2f6bff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 4px 22px rgba(232, 185, 92, 0.28));
+    filter: drop-shadow(0 4px 22px rgba(var(--accent-rgb), 0.28));
   }
 }
 
@@ -218,7 +220,7 @@ main {
   content: "";
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold));
+  background: linear-gradient(90deg, transparent, var(--accent));
 }
 
 .divider::after {
@@ -228,14 +230,14 @@ main {
 .divider span {
   width: 0.55rem;
   height: 0.55rem;
-  border: 1.5px solid var(--gold);
+  border: 1.5px solid var(--accent);
   transform: rotate(45deg);
 }
 
 .lede {
   max-width: 34rem;
   margin: 1.25rem auto 0;
-  color: #efd493;
+  color: #cfe0ff;
   font-family: var(--serif);
   font-size: 1.2rem;
   line-height: 1.45;
@@ -269,7 +271,7 @@ main {
   position: absolute;
   top: 50%;
   left: 1rem;
-  color: var(--gold);
+  color: var(--accent);
   transform: translateY(-50%);
   pointer-events: none;
 }
@@ -293,8 +295,8 @@ main {
 
 .search input[type="search"]:focus-visible {
   outline: 2px solid transparent;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(232, 185, 92, 0.3);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.3);
 }
 
 .search button[type="submit"] {
@@ -302,18 +304,18 @@ main {
   padding: 0 1.75rem;
   border: 0;
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #f8dc95, #d79f3f);
-  color: #2a0b10;
+  background: linear-gradient(180deg, #4d8bff, #1e5fff);
+  color: #ffffff;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    0 12px 28px -10px rgba(232, 185, 92, 0.7);
+    0 12px 28px -10px rgba(var(--accent-rgb), 0.7);
 }
 
 .search button[type="submit"]:hover {
-  background: linear-gradient(180deg, #fde3a6, #e0a947);
+  background: linear-gradient(180deg, #6ea3ff, #3170ff);
 }
 
 .search button[type="submit"]:active {
@@ -373,12 +375,12 @@ main {
 
 .window-options input:checked + span {
   border-color: var(--edge-strong);
-  background: rgba(232, 185, 92, 0.2);
-  color: var(--gold-hi);
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--accent-hi);
 }
 
 .window-options input:focus-visible + span {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -403,8 +405,8 @@ main {
 }
 
 .examples a:hover {
-  border-color: var(--gold);
-  color: var(--gold-hi);
+  border-color: var(--accent);
+  color: var(--accent-hi);
 }
 
 .legend {
@@ -418,14 +420,14 @@ main {
 
 .legend h2 {
   margin: 0 0 1rem;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-family: var(--serif);
   font-size: 1.5rem;
   font-weight: 700;
 }
 
 .legend .strip {
-  --tone: var(--gold);
+  --tone: var(--accent);
   max-width: 36rem;
   margin-inline: auto;
   text-align: left;
@@ -444,7 +446,7 @@ main {
 .badges li strong {
   display: block;
   margin-bottom: 0.25rem;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-family: var(--serif);
   font-size: 1.1rem;
   font-weight: 700;
@@ -456,13 +458,13 @@ main {
   width: 4.6rem;
   height: 4.6rem;
   margin: 0 auto 0.9rem;
-  border: 1.5px solid var(--gold);
+  border: 1.5px solid var(--accent);
   border-radius: 50%;
-  color: var(--gold);
-  background: radial-gradient(circle at 50% 28%, rgba(232, 185, 92, 0.26), rgba(232, 185, 92, 0.04));
+  color: var(--accent);
+  background: radial-gradient(circle at 50% 28%, rgba(var(--accent-rgb), 0.26), rgba(var(--accent-rgb), 0.04));
   box-shadow:
-    0 0 30px -4px rgba(232, 185, 92, 0.5),
-    inset 0 0 18px rgba(232, 185, 92, 0.14);
+    0 0 30px -4px rgba(var(--accent-rgb), 0.5),
+    inset 0 0 18px rgba(var(--accent-rgb), 0.14);
 }
 
 .badge svg {
@@ -475,21 +477,21 @@ main {
   margin: 2.25rem auto 0;
   padding: 0.85rem 1.5rem;
   border-radius: 999px;
-  background: #f6ead2;
-  color: #3a0d14;
+  background: #eaf3ff;
+  color: #0a1230;
   font-weight: 650;
   box-shadow:
-    0 0 0 2px rgba(232, 185, 92, 0.6),
+    0 0 0 2px rgba(var(--accent-rgb), 0.6),
     0 16px 30px -14px rgba(0, 0, 0, 0.8);
 }
 
 .strip {
-  --tone: var(--gold);
+  --tone: var(--accent);
   margin: 0.75rem 0 0.25rem;
 }
 
 .strip-original {
-  --tone: var(--gold);
+  --tone: var(--accent);
 }
 
 .strip-replica {
@@ -505,8 +507,8 @@ main {
   height: 3.2rem;
   border-bottom: 1px solid var(--edge-strong);
   background-image:
-    repeating-linear-gradient(to right, rgba(246, 234, 210, 0.6) 0 1px, transparent 1px 25%),
-    repeating-linear-gradient(to right, rgba(246, 234, 210, 0.22) 0 1px, transparent 1px 5%);
+    repeating-linear-gradient(to right, rgba(200, 220, 255, 0.6) 0 1px, transparent 1px 25%),
+    repeating-linear-gradient(to right, rgba(200, 220, 255, 0.22) 0 1px, transparent 1px 5%);
   background-size:
     100% 0.9rem,
     100% 0.5rem;
@@ -538,10 +540,10 @@ main {
   left: var(--median);
   width: 3px;
   border-radius: 2px;
-  background: #fff6de;
+  background: #eaf3ff;
   box-shadow:
     0 0 14px var(--tone),
-    0 0 2px #fff6de;
+    0 0 2px #eaf3ff;
   transform: translateX(-50%);
 }
 
@@ -570,7 +572,7 @@ main {
   margin: 2.5rem auto 0;
   padding: 1.1rem 1.35rem;
   border: 1px solid var(--edge);
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--accent);
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, var(--glass-strong), var(--glass));
   box-shadow: var(--lift);
@@ -603,7 +605,7 @@ main {
 
 .product-name {
   margin: 0 0 1.25rem;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-family: var(--serif);
   font-size: 1.5rem;
   font-weight: 700;
@@ -611,7 +613,7 @@ main {
 }
 
 .tone-original {
-  --tone: var(--gold);
+  --tone: var(--accent);
 }
 
 .tone-replica {
@@ -722,8 +724,8 @@ main {
   content: "";
   width: 0.5rem;
   height: 0.5rem;
-  border-right: 2px solid var(--gold);
-  border-bottom: 2px solid var(--gold);
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
   transform: rotate(-45deg);
 }
 
@@ -752,8 +754,8 @@ main {
 
 .offers-sort button[aria-pressed="true"] {
   border-color: var(--edge-strong);
-  background: rgba(232, 185, 92, 0.2);
-  color: var(--gold-hi);
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--accent-hi);
 }
 
 .offers-list {
@@ -814,7 +816,7 @@ main {
   content: "";
   width: min(6rem, 18vw);
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold));
+  background: linear-gradient(90deg, transparent, var(--accent));
 }
 
 .footer::after {
@@ -822,7 +824,7 @@ main {
 }
 
 .footer a {
-  color: #ecd299;
+  color: #bcd4ff;
 }
 
 @media (max-width: 30rem) {
@@ -938,13 +940,13 @@ main {
   background: var(--glass);
 }
 .sortbar a[aria-current="true"] {
-  border-color: var(--gold);
+  border-color: var(--accent);
   background: var(--glass-strong);
-  color: var(--gold-hi);
+  color: var(--accent-hi);
 }
 .sortbar a:focus-visible,
 .more:focus-visible {
-  outline: 2px solid var(--gold-hi);
+  outline: 2px solid var(--accent-hi);
   outline-offset: 2px;
 }
 
@@ -955,7 +957,7 @@ main {
   padding: 0.75rem 1.6rem;
   border: 1px solid var(--edge-strong);
   border-radius: 999px;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   text-decoration: none;
   transition: background-color 0.2s ease;
 }
@@ -965,7 +967,7 @@ main {
 
 .compare-title {
   margin: 0 0 0.4rem;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-weight: 650;
 }
 .compare-list {
@@ -995,7 +997,7 @@ main {
   padding: 0.1rem 0.5rem;
   border: 1px solid var(--edge);
   border-radius: 999px;
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-size: 0.75rem;
   font-style: normal;
   line-height: 1.4;
