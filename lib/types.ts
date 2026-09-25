@@ -20,6 +20,7 @@ export interface Product {
   variant: Variant | null;
   volumeMl: number | null;
   aliases: string[];
+  embedding: number[] | null;
 }
 
 export interface Offer {

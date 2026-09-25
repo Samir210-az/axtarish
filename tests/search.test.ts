@@ -72,6 +72,33 @@ describe("search", () => {
     expect(first?.groups.map((g) => g.authenticity)).toEqual(["original", "replica"]);
   });
 
+  it("embedQuery verilmirsə axtarış əvvəlki kimi işləyir", async () => {
+    const res = await search("Dior Sauvage", 30, deps([product()], [offer()]));
+    expect(res.results).toHaveLength(1);
+  });
+
+  it("embedQuery null qaytarsa (məs. API açarı yoxdur) nəticə dəyişmir", async () => {
+    const custom: SearchDeps = {
+      ...deps([product()], [offer()]),
+      embedQuery: async () => null,
+    };
+    const res = await search("Dior Sauvage", 30, custom);
+    expect(res.results).toHaveLength(1);
+  });
+
+  it("embedQuery sorğu mətni ilə çağırılır", async () => {
+    const seen: string[] = [];
+    const custom: SearchDeps = {
+      ...deps([product()], [offer()]),
+      embedQuery: async (q) => {
+        seen.push(q);
+        return null;
+      },
+    };
+    await search("Dior Sauvage", 30, custom);
+    expect(seen).toEqual(["Dior Sauvage"]);
+  });
+
   it("satıcı sayı çox olan məhsulu yuxarı çıxarır", async () => {
     const products = [
       product({ id: "a", displayName: "Aaa Sauvage 100 ml" }),

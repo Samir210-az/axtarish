@@ -16,6 +16,9 @@ import type { Offer, Product, ProductResult, PublicOffer, SearchResponse } from 
 export interface SearchDeps {
   loadProducts: (query: ParsedQuery) => Promise<Product[]>;
   loadOffers: (productIds: string[], since: Date) => Promise<Offer[]>;
+  /** Sorğu mətnini embedding vektoruna çevirir. Verilmirsə və ya null qaytarırsa,
+   * axtarış sadəcə açar-söz uyğunluğu ilə davam edir. */
+  embedQuery?: (rawQuery: string) => Promise<number[] | null>;
   now?: () => Date;
 }
 
@@ -73,7 +76,8 @@ export async function search(
     return { ...base, understood: true, matchedProducts: 0, pricedProducts: 0, examinedProducts: 0, sort, results: [] };
   }
 
-  const candidates = rankCandidates(matched, query).slice(0, MAX_CANDIDATE_PRODUCTS);
+  const queryEmbedding = deps.embedQuery ? await deps.embedQuery(rawQuery).catch(() => null) : null;
+  const candidates = rankCandidates(matched, query, queryEmbedding).slice(0, MAX_CANDIDATE_PRODUCTS);
 
   const since = new Date(now.getTime() - days * DAY_MS);
   const offers = (

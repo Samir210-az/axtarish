@@ -10,6 +10,7 @@ import {
   isSortKey,
   type SortKey,
 } from "./config";
+import { embedText } from "./embeddings";
 import { ConfigError } from "./firebaseAdmin";
 import { loadOffers, loadProducts } from "./firestoreSource";
 import { search, type SearchOptions } from "./search";
@@ -54,7 +55,12 @@ export type SearchOutcome = { ok: true; data: SearchResponse } | { ok: false; st
 
 export async function runSearch(q: string, days: number, options: SearchOptions = {}): Promise<SearchOutcome> {
   try {
-    const data = await search(q, days, { loadProducts, loadOffers }, options);
+    const data = await search(
+      q,
+      days,
+      { loadProducts, loadOffers, embedQuery: (text) => embedText(text, "RETRIEVAL_QUERY") },
+      options,
+    );
     return { ok: true, data };
   } catch (error) {
     if (error instanceof ConfigError) {

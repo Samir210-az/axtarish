@@ -16,6 +16,7 @@ export function product(overrides: Partial<Product> = {}): Product {
     variant: "edp",
     volumeMl: 100,
     aliases: [],
+    embedding: null,
     ...overrides,
   };
 }

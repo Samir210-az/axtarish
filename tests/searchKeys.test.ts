@@ -13,6 +13,7 @@ function make(id: string, displayName: string, extra: Partial<Product> = {}): Pr
     variant: null,
     volumeMl: null,
     aliases: [displayName],
+    embedding: null,
     ...extra,
   };
 }

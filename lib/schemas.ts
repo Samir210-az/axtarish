@@ -14,6 +14,7 @@ export const productDocSchema = z.object({
   variant: z.enum(VARIANTS).nullable().default(null),
   volumeMl: z.number().positive().nullable().default(null),
   aliases: z.array(z.string()).default([]),
+  embedding: z.array(z.number()).nullable().default(null),
 });
 
 export const offerDocSchema = z.object({
