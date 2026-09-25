@@ -68,6 +68,8 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
           )}
         </main>
 
+        <p className="ai-disclosure">Axtarış nəticələri süni intellektin köməyi ilə sıralanır.</p>
+
         <footer className="footer">
           <a href="https://instagram.com/securtiy_group" target="_blank" rel="noopener noreferrer">
             By securtiy_group

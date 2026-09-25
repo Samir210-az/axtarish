@@ -801,12 +801,19 @@ main {
   font-size: 0.9rem;
 }
 
+.ai-disclosure {
+  margin: 2.5rem auto 0;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.78rem;
+}
+
 .footer {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin-top: 3rem;
+  margin-top: 0.75rem;
   font-family: var(--serif);
   font-size: 1rem;
 }
