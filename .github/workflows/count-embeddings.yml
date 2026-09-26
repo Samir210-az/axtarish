@@ -20,7 +20,10 @@ jobs:
       - name: Run count
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: npx tsx crawler/count-embeddings.ts | tee count-embeddings-output.md
+        run: |
+          npx tsx crawler/count-embeddings.ts > count-embeddings-output.md 2>&1
+          echo "exit_code=$?" >> count-embeddings-output.md
+          cat count-embeddings-output.md
       - name: Publish output
         if: always()
         run: |
