@@ -8,7 +8,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' https://an-psixoloji-33442-default-rtdb.firebaseio.com https://identitytoolkit.googleapis.com https://ipwho.is",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

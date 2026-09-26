@@ -3,6 +3,7 @@ import "@fontsource-variable/onest";
 import "@fontsource-variable/playfair-display";
 import "./globals.css";
 import { PwaRegister } from "@/components/PwaRegister";
+import { SgInsight } from "@/components/SgInsight";
 
 export const metadata: Metadata = {
   title: "Axtarış: Azərbaycan bazarında qiymətlər",
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="backdrop" aria-hidden="true" />
         {children}
         <PwaRegister />
+        <SgInsight />
       </body>
     </html>
   );
